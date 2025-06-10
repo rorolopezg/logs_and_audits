@@ -24,6 +24,7 @@ public class PlatformController {
     public ResponseEntity<?> getAllTestEntities() {
         log.info("Fetching all test entities");
         List<TestEntity> entityList = platformService.findAllTestEntity();
+        log.info("End fetching all test entities");
         return ResponseEntity.ok(entityList);
     }
 
@@ -31,6 +32,7 @@ public class PlatformController {
     public ResponseEntity<?> saveTestEntity(@RequestBody TestEntity testEntity) {
         log.info("Saving test entity: {}", testEntity);
         TestEntity savedEntity = platformService.saveTestEntity(testEntity);
+        log.info("End Saving test entity: {}", savedEntity);
         return ResponseEntity.ok(savedEntity);
     }
 

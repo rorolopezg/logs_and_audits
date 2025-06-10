@@ -73,7 +73,7 @@ public class EntityUpdateEventListener implements PostUpdateEventListener {
                     id
             );
 
-            log.info("AUDIT - User '{}' Updated: Type=[{}], Event ID=[{}], OldState={}, NewState={}, ChangedProperties={}",
+            log.info("AUDIT - User '{}' Updated: Type=[{}], ID=[{}], OldState={}, NewState={}, ChangedProperties={}",
                     user,
                     entityName,
                     id,

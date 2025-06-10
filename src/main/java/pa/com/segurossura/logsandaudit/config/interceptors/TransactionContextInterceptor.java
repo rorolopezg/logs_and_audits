@@ -2,6 +2,7 @@ package pa.com.segurossura.logsandaudit.config.interceptors;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import lombok.extern.slf4j.Slf4j;
 import org.slf4j.MDC;
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Component;
@@ -11,7 +12,11 @@ import org.springframework.web.servlet.HandlerInterceptor;
 
 import java.util.UUID;
 
+import static pa.com.segurossura.logsandaudit.config.entitylisteners.HibernateListenerConfig.LOG_TYPE_AUDIT;
+import static pa.com.segurossura.logsandaudit.config.entitylisteners.HibernateListenerConfig.LOG_TYPE_KEY;
+
 @Component
+@Slf4j
 public class TransactionContextInterceptor implements HandlerInterceptor {
 
     // Define las claves que usarás en el MDC para consistencia
@@ -29,42 +34,62 @@ public class TransactionContextInterceptor implements HandlerInterceptor {
     @Override
     public boolean preHandle(@NonNull HttpServletRequest request, @NonNull HttpServletResponse response, @NonNull Object handler) {
         // Genera un ID de transacción único para cada petición
-        String transactionId = UUID.randomUUID().toString();
-        MDC.put(TRANSACTION_ID_KEY, transactionId);
+        try {
+            MDC.put(LOG_TYPE_KEY, LOG_TYPE_AUDIT);
+            String transactionId = UUID.randomUUID().toString();
+            MDC.put(TRANSACTION_ID_KEY, transactionId);
 
-        // Intenta obtener un nombre de acción significativo (ej. "NombreController#nombreMetodo")
-        if (handler instanceof HandlerMethod handlerMethod) {
-            String actionName = handlerMethod.getBeanType().getSimpleName() + "#" + handlerMethod.getMethod().getName();
-            MDC.put(TRANSACTION_ACTION_KEY, actionName);
+            // Intenta obtener un nombre de acción significativo (ej. "NombreController#nombreMetodo")
+            if (handler instanceof HandlerMethod handlerMethod) {
+                String actionName = handlerMethod.getBeanType().getSimpleName() + "#" + handlerMethod.getMethod().getName();
+                MDC.put(TRANSACTION_ACTION_KEY, actionName);
+            }
+
+            // Usa el método y la URI de la petición
+            MDC.put(TRANSACTION_URI_KEY, request.getMethod() + ":" + request.getRequestURI());
+            MDC.put(X_TRANSACTION_ID_KEY, request.getHeader(X_TRANSACTION_ID_KEY));
+            MDC.put(X_ORGANIZATION_ID_KEY, request.getHeader(X_ORGANIZATION_ID_KEY));
+            MDC.put(X_ORGANIZATION_TYPE_KEY, request.getHeader(X_ORGANIZATION_TYPE_KEY));
+            MDC.put(X_CLIENT_APPLICATION_KEY, request.getHeader(X_CLIENT_APPLICATION_KEY));
+            MDC.put(X_USER_KEY, request.getHeader(X_USER_KEY));
+            MDC.put(X_CLIENT_APPLICATION_FLOW_KEY, request.getHeader(X_CLIENT_APPLICATION_FLOW_KEY));
+            MDC.put(REMOTE_IP_KEY, getRemoteIp(request));
+
+
+            log.info("AUDIT - Transaction started: ID={}, Action={}, URI={}",
+                    transactionId,
+                    MDC.get(TRANSACTION_ACTION_KEY),
+                    MDC.get(TRANSACTION_URI_KEY));
+        } finally {
+            MDC.remove(LOG_TYPE_KEY);
         }
-
-        // Usa el método y la URI de la petición
-        MDC.put(TRANSACTION_URI_KEY, request.getMethod() + ":" + request.getRequestURI());
-        MDC.put(X_TRANSACTION_ID_KEY, request.getHeader(X_TRANSACTION_ID_KEY));
-        MDC.put(X_ORGANIZATION_ID_KEY, request.getHeader(X_ORGANIZATION_ID_KEY));
-        MDC.put(X_ORGANIZATION_TYPE_KEY, request.getHeader(X_ORGANIZATION_TYPE_KEY));
-        MDC.put(X_CLIENT_APPLICATION_KEY, request.getHeader(X_CLIENT_APPLICATION_KEY));
-        MDC.put(X_USER_KEY, request.getHeader(X_USER_KEY));
-        MDC.put(X_CLIENT_APPLICATION_FLOW_KEY, request.getHeader(X_CLIENT_APPLICATION_FLOW_KEY));
-        MDC.put(REMOTE_IP_KEY, getRemoteIp(request));
 
         return true; // Continúa con la ejecución de la cadena de interceptores y el controller
     }
 
     @Override
     public void afterCompletion(@NonNull HttpServletRequest request, @NonNull HttpServletResponse response, @NonNull Object handler, Exception ex) {
-        // Limpia el MDC después de que la petición se ha completado
-        // Es crucial para evitar que los datos de esta petición se filtren a la siguiente en el mismo hilo.
-        MDC.remove(TRANSACTION_ID_KEY);
-        MDC.remove(TRANSACTION_ACTION_KEY);
-        MDC.remove(TRANSACTION_URI_KEY);
-        MDC.remove(X_TRANSACTION_ID_KEY);
-        MDC.remove(X_ORGANIZATION_ID_KEY);
-        MDC.remove(X_ORGANIZATION_TYPE_KEY);
-        MDC.remove(X_CLIENT_APPLICATION_KEY);
-        MDC.remove(X_USER_KEY);
-        MDC.remove(X_CLIENT_APPLICATION_FLOW_KEY);
-        MDC.remove(REMOTE_IP_KEY);
+        try {
+            MDC.put(LOG_TYPE_KEY, LOG_TYPE_AUDIT);
+            log.info("AUDIT - Transaction completed: ID={}, Action={}, URI={}",
+                    MDC.get(TRANSACTION_ID_KEY),
+                    MDC.get(TRANSACTION_ACTION_KEY),
+                    MDC.get(TRANSACTION_URI_KEY));
+            // Limpia el MDC después de que la petición se ha completado
+            // Es crucial para evitar que los datos de esta petición se filtren a la siguiente en el mismo hilo.
+            MDC.remove(TRANSACTION_ID_KEY);
+            MDC.remove(TRANSACTION_ACTION_KEY);
+            MDC.remove(TRANSACTION_URI_KEY);
+            MDC.remove(X_TRANSACTION_ID_KEY);
+            MDC.remove(X_ORGANIZATION_ID_KEY);
+            MDC.remove(X_ORGANIZATION_TYPE_KEY);
+            MDC.remove(X_CLIENT_APPLICATION_KEY);
+            MDC.remove(X_USER_KEY);
+            MDC.remove(X_CLIENT_APPLICATION_FLOW_KEY);
+            MDC.remove(REMOTE_IP_KEY);
+        } finally {
+            MDC.remove(LOG_TYPE_KEY);
+        }
     }
 
     private String getRemoteIp(HttpServletRequest request) {
