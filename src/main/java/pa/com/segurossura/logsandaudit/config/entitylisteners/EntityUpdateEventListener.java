@@ -8,6 +8,7 @@ import org.hibernate.event.spi.PostUpdateEventListener;
 import org.hibernate.persister.entity.EntityPersister;
 import org.slf4j.MDC;
 import org.springframework.stereotype.Component;
+import pa.com.segurossura.logsandaudit.config.interceptors.TransactionContextInterceptor;
 import pa.com.segurossura.logsandaudit.utils.security.SecurityUtils;
 
 import java.io.Serializable;
@@ -39,6 +40,9 @@ public class EntityUpdateEventListener implements PostUpdateEventListener {
         String[] propertyNames = persister.getPropertyNames();
 
         String user = SecurityUtils.getCurrentUserLogin();
+        String transactionId = MDC.get(TransactionContextInterceptor.TRANSACTION_ID_KEY);
+        String transactionAction = MDC.get(TransactionContextInterceptor.TRANSACTION_ACTION_KEY);
+
 
         try {
             MDC.put(LOG_TYPE_KEY, LOG_TYPE_AUDIT);
@@ -69,7 +73,7 @@ public class EntityUpdateEventListener implements PostUpdateEventListener {
                     id
             );
 
-            log.info("AUDIT - User '{}' Updated: Type=[{}], ID=[{}], OldState={}, NewState={}, ChangedProperties={}",
+            log.info("AUDIT - User '{}' Updated: Type=[{}], Event ID=[{}], OldState={}, NewState={}, ChangedProperties={}",
                     user,
                     entityName,
                     id,
