@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Guía Interactiva: Logging Avanzado en Spring Boot</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Chosen Palette: Slate & Sky -->
+    <!-- Application Structure Plan: The SPA is structured as an interactive dashboard. The core is a visual architecture diagram where each component is clickable. Clicking a component updates a details panel with explanations and code snippets. This non-linear, explorative approach is more engaging for developers than a linear document. A simulation section provides a hands-on demonstration, showing how different actions produce different logs, solidifying the user's understanding of the flow. This structure was chosen to transform a linear technical document into an exploratory learning tool, which is more effective for understanding system architectures. -->
+    <!-- Visualization & Content Choices: Main Visualization: Architecture Diagram. Goal: Organize/Relationships. Method: Interactive Diagram (HTML/CSS/JS). Interaction: Clicks on components update a detail view. Justification: This directly models the system's flow, which is the key concept of the report. Simulation: Log generation in text areas. Goal: Inform/Change. Method: Dynamic text blocks. Interaction: Buttons trigger log generation. Justification: Makes the abstract concept of log generation tangible and observable. No statistical charts were needed as the source material is conceptual. -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8fafc;
+            color: #334155;
+        }
+        .component {
+            transition: all 0.3s ease-in-out;
+            cursor: pointer;
+        }
+        .component:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+        }
+        .component.active {
+            border-color: #0284c7;
+            box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.3);
+            transform: scale(1.05);
+        }
+        .details-panel-content {
+            animation: fadeIn 0.5s ease-in-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .code-block {
+            background-color: #1e293b;
+            color: #e2e8f0;
+            border-radius: 0.5rem;
+            padding: 1rem;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 0.875rem;
+            overflow-x: auto;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+        .log-area {
+            background-color: #0f172a;
+            color: #94a3b8;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 0.8rem;
+            height: 250px;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            overflow-y: auto;
+            border-radius: 0.5rem;
+            padding: 0.75rem;
+        }
+        .log-area-title {
+            font-weight: 600;
+            color: #475569;
+            margin-bottom: 0.5rem;
+        }
+        .highlight-flow {
+            animation: pulse 1.5s infinite;
+        }
+        @keyframes pulse {
+            0%, 100% {
+                box-shadow: 0 0 0 0 rgba(14, 165, 233, 0.4);
+            }
+            70% {
+                box-shadow: 0 0 0 10px rgba(14, 165, 233, 0);
+            }
+        }
+    </style>
+</head>
+<body class="antialiased">
+
+<div class="container mx-auto p-4 md:p-8">
+    <header class="text-center mb-12">
+        <h1 class="text-4xl md:text-5xl font-bold text-slate-800">Guía Interactiva de Logging</h1>
+        <p class="mt-4 text-lg text-slate-600">Una exploración visual de la generación de logs transaccionales y de auditoría en Spring Boot.</p>
+    </header>
+
+    <main class="grid grid-cols-1 lg:grid-cols-5 gap-8">
+        <section id="architecture-diagram" class="lg:col-span-3 bg-white p-6 rounded-xl shadow-lg border border-slate-200">
+            <h2 class="text-2xl font-bold mb-6 text-center text-slate-700">Diagrama de Arquitectura</h2>
+            <div class="relative min-h-[700px] flex flex-col justify-around items-center">
+                <!-- Fila 1: Petición -->
+                <div class="flex justify-center">
+                    <div id="comp-request" class="component bg-slate-100 p-4 rounded-lg border-2 border-slate-300 w-48 text-center" data-target="request">
+                        <span class="text-4xl">📡</span>
+                        <h3 class="font-semibold mt-2">Petición HTTP</h3>
+                    </div>
+                </div>
+                <div class="text-3xl text-slate-400 my-1">↓</div>
+
+                <!-- Fila 2: Interceptor -->
+                <div class="flex justify-center">
+                    <div id="comp-interceptor" class="component bg-slate-100 p-4 rounded-lg border-2 border-slate-300 w-48 text-center" data-target="interceptor">
+                        <span class="text-4xl">🚦</span>
+                        <h3 class="font-semibold mt-2">Interceptor</h3>
+                    </div>
+                </div>
+                <div class="text-3xl text-slate-400 my-1">↓</div>
+
+                <!-- Fila 3: Controller -->
+                <div class="flex justify-center">
+                    <div id="comp-controller" class="component bg-slate-100 p-4 rounded-lg border-2 border-slate-300 w-48 text-center" data-target="controller">
+                        <span class="text-4xl">🕹️</span>
+                        <h3 class="font-semibold mt-2">Controller/Service</h3>
+                    </div>
+                </div>
+                <div class="text-3xl text-slate-400 my-1">↓</div>
+
+                <!-- Fila 4: Hibernate y Listeners -->
+                <div class="flex justify-center gap-8">
+                    <div id="comp-hibernate" class="component bg-slate-100 p-4 rounded-lg border-2 border-slate-300 w-48 text-center" data-target="hibernate">
+                        <span class="text-4xl">💾</span>
+                        <h3 class="font-semibold mt-2">Hibernate / DB</h3>
+                    </div>
+                    <div id="comp-listeners" class="component bg-slate-100 p-4 rounded-lg border-2 border-slate-300 w-48 text-center" data-target="listeners">
+                        <span class="text-4xl">🎣</span>
+                        <h3 class="font-semibold mt-2">Hibernate Listeners</h3>
+                    </div>
+                </div>
+                <div class="text-3xl text-slate-400 my-1">↓</div>
+
+                <!-- Fila 5: Motor de Logging -->
+                <div class="flex justify-center">
+                    <div id="comp-engine" class="component bg-violet-100 p-4 rounded-lg border-2 border-violet-300 w-48 text-center" data-target="engine">
+                        <span class="text-4xl">⚙️</span>
+                        <h3 class="font-semibold mt-2">Motor de Logging</h3>
+                    </div>
+                </div>
+                <div class="text-3xl text-slate-400 my-1">↓</div>
+
+                <!-- Fila 6: Logs -->
+                <div class="flex justify-center gap-8">
+                    <div id="comp-applog" class="component bg-sky-100 p-4 rounded-lg border-2 border-sky-300 w-48 text-center" data-target="applog">
+                        <span class="text-4xl">📄</span>
+                        <h3 class="font-semibold mt-2">application.log</h3>
+                        <p class="text-xs text-slate-500">Log Transaccional</p>
+                    </div>
+                    <div id="comp-auditlog" class="component bg-amber-100 p-4 rounded-lg border-2 border-amber-300 w-48 text-center" data-target="auditlog">
+                        <span class="text-4xl">📜</span>
+                        <h3 class="font-semibold mt-2">audit.log</h3>
+                        <p class="text-xs text-slate-500">Log de Auditoría</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="details-panel" class="lg:col-span-2 bg-white p-6 rounded-xl shadow-lg border border-slate-200">
+        </section>
+    </main>
+
+    <section class="mt-12 bg-white p-6 rounded-xl shadow-lg border border-slate-200">
+        <h2 class="text-2xl font-bold mb-6 text-center text-slate-700">Simulación Interactiva</h2>
+        <p class="text-center text-slate-600 mb-6">Haz clic en los botones para simular peticiones y ver cómo se generan los logs.</p>
+        <div class="flex justify-center gap-4 mb-6">
+            <button id="sim-get" class="bg-sky-600 hover:bg-sky-700 text-white font-bold py-2 px-4 rounded-lg transition-transform transform hover:scale-105">Simular Petición GET</button>
+            <button id="sim-post" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg transition-transform transform hover:scale-105">Simular Petición POST (Guardar)</button>
+            <button id="sim-reset" class="bg-slate-500 hover:bg-slate-600 text-white font-bold py-2 px-4 rounded-lg transition-transform transform hover:scale-105">Resetear</button>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+                <h3 class="log-area-title">📄 application.log</h3>
+                <div id="log-app" class="log-area"></div>
+            </div>
+            <div>
+                <h3 class="log-area-title">📜 audit.log</h3>
+                <div id="log-audit" class="log-area"></div>
+            </div>
+        </div>
+    </section>
+</div>
+
+<script>
+    const detailsContent = {
+        default: {
+            title: 'Bienvenido a la Guía Interactiva',
+            description: 'Este diagrama muestra el flujo de una petición a través de la API y cómo se generan los diferentes tipos de logs. Haz clic en cualquier componente del diagrama para explorar sus detalles, ver su propósito y examinar el código fuente relevante.',
+            code: `// Haz clic en un componente para empezar...`
+        },
+        request: {
+            title: 'Punto de Entrada: La Petición HTTP',
+            description: 'Todo comienza aquí. Un cliente (un frontend, otra API, etc.) envía una petición a uno de los endpoints de nuestra aplicación. Esta petición contiene toda la información necesaria para la operación, incluyendo cabeceras y, opcionalmente, un cuerpo.',
+            code: `// Ejemplo de una petición\nGET /test-entities/\nHost: miapi.com\nx-user: developer_1\nx-transaction-id: abc-123-xyz`
+        },
+        interceptor: {
+            title: 'Parte 1: El Interceptor y el Contexto Transaccional',
+            description: 'El `TransactionContextInterceptor` es el guardián de la entrada. Captura cada petición antes de que llegue al controlador. Su misión es enriquecer el Contexto de Diagnóstico Mapeado (MDC) con datos cruciales que se añadirán a CADA log transaccional, garantizando una trazabilidad completa.',
+            code: `// TransactionContextInterceptor.java\n@Component\npublic class TransactionContextInterceptor implements HandlerInterceptor {\n    public static final String TRANSACTION_ID_KEY = "internalTransactionId";\n\n    @Override\n    public boolean preHandle(...) {\n        // Genera un ID único para la transacción interna\n        String transactionId = UUID.randomUUID().toString();\n        MDC.put(TRANSACTION_ID_KEY, transactionId);\n\n        // Extrae cabeceras, URI, IP del cliente, etc.\n        MDC.put("transactionURI", request.getMethod() + ":" + request.getRequestURI());\n        MDC.put("x-user", request.getHeader("x-user"));\n        // ... y más\n        return true;\n    }\n\n    @Override\n    public void afterCompletion(...) {\n        // ¡Crucial! Limpia el MDC para el siguiente hilo.\n        MDC.clear();\n    }\n}`
+        },
+        controller: {
+            title: 'Lógica de Negocio: Controller y Service',
+            description: 'Aquí es donde reside la lógica principal de la aplicación. Los controladores reciben la petición y orquestan las operaciones, a menudo delegando en las capas de servicio. Los logs generados en esta capa (`log.info`, `log.error`, etc.) son logs transaccionales y se benefician directamente del contexto añadido por el interceptor.',
+            code: `// PlatformController.java\n@RestController\n@Slf4j\npublic class PlatformController {\n    // ...\n    @PostMapping("/test-entities")\n    public ResponseEntity<?> saveTestEntity(@RequestBody TestEntity testEntity) {\n        // Este log contendrá el internalTransactionId y otros datos del MDC\n        log.info("Saving test entity: {}", testEntity); \n        TestEntity savedEntity = platformService.saveTestEntity(testEntity);\n        return ResponseEntity.ok(savedEntity);\n    }\n}`
+        },
+        applog: {
+            title: 'El Log Transaccional: application.log',
+            description: 'Este archivo es la bitácora del día a día de la aplicación. Contiene el flujo de ejecución, advertencias, errores y cualquier información de diagnóstico. Gracias al interceptor y al MDC, cada línea de log aquí está enriquecida con un contexto invaluable que permite agrupar y filtrar logs por transacción.',
+            code: `// Ejemplo de una línea en application.log (en formato JSON)\n{\n  "timestamp": "2025-06-10T16:30:00Z",\n  "level": "INFO",\n  "thread": "http-nio-8080-exec-1",\n  "logger": "c.s.l.controllers.PlatformController",\n  "message": "Saving test entity: ...",\n  "traceId": "a1b2c3d4e5f6a1b2",\n  "spanId": "f1e2d3c4b5a6f1e2",\n  "internalTransactionId": "f47ac10b-58cc-4372-a567-0e02b2c3d479",\n  "transactionURI": "POST:/test-entities",\n  "x-user": "developer_1",\n  "remoteIp": "192.168.1.10"\n}`
+        },
+        hibernate: {
+            title: 'Persistencia: Hibernate y Base de Datos',
+            description: 'Cuando la lógica de negocio requiere un cambio en los datos, interactúa con la base de datos a través de Hibernate. Cada operación de guardado (`save`), actualización (`update`) o borrado (`delete`) desencadena eventos internos en el motor de Hibernate.',
+            code: `// ITestEntityRepository.java\npublic interface ITestEntityRepository extends JpaRepository<TestEntity, UUID> {\n    // Spring Data JPA crea las implementaciones de save(), findAll(), etc.\n    // Cada llamada a save(), por ejemplo, puede disparar un evento de inserción o actualización.\n}`
+        },
+        listeners: {
+            title: 'Parte 2: Listeners de Hibernate - La Magia de la Auditoría Automática',
+            description: 'Aquí ocurre la magia de la auditoría. Estas clases especiales "escuchan" los eventos de Hibernate. Cuando detectan una operación de base de datos completada (inserción, actualización o borrado), se activan para crear un log de auditoría detallado sin que tengamos que escribir código de logging en nuestros servicios.',
+            code: `// EntityUpdateEventListener.java\n@Component\n@Slf4j\npublic class EntityUpdateEventListener implements PostUpdateEventListener {\n    @Override\n    public void onPostUpdate(PostUpdateEvent event) {\n        // 1. Marcar el log como Auditoría\n        MDC.put("log_type", "AUDIT");\n\n        // 2. Obtener estado viejo, nuevo y cambios específicos\n        Object[] oldState = event.getOldState();\n        Object[] newState = event.getState();\n        // ... lógica para comparar y formatear a JSON ...\n\n        // 3. Escribir el log de auditoría\n        log.info("AUDIT - User '{}' Updated: Type=[{}], ChangedProperties={...}", ...);\n\n        // 4. Limpiar\n        MDC.remove("log_type");\n    }\n}`
+        },
+        auditlog: {
+            title: 'El Log de Auditoría: audit.log',
+            description: 'Este archivo es el registro inmutable de la verdad. Almacena un historial detallado de cada cambio de datos: qué se creó, qué se modificó (con valores antiguos y nuevos) y qué se eliminó. Es un recurso crítico para la seguridad y el cumplimiento.',
+            code: `// Ejemplo de una línea en audit.log (en formato JSON)\n{\n  "timestamp": "2025-06-10T16:30:01Z",\n  "level": "INFO",\n  "thread": "http-nio-8080-exec-1",\n  "logger": "c.s.l.c.entitylisteners.EntityUpdateEventListener",\n  "message": "AUDIT - User 'anonymous' Updated: ...",\n  "traceId": "a1b2c3d4e5f6a1b2",\n  "spanId": "f1e2d3c4b5a6f1e2",\n  "internalTransactionId": "f47ac10b-58cc-4372-a567-0e02b2c3d479",\n  "log_type": "AUDIT"\n}`
+        },
+        engine: {
+            title: 'Parte 3: El Motor de Logging - Enrutando y Formateando',
+            description: 'El `logback-spring.xml` y la clase `AuditRoutingAppender` trabajan juntos como el sistema de enrutamiento. Logback captura todos los logs y los pasa al `AuditRoutingAppender`. Este appender personalizado revisa el MDC en busca de la bandera `log_type`. Si es "AUDIT", lo envía a `audit.log`; si no, a `application.log`.',
+            code: `// AuditRoutingAppender.java\npublic class AuditRoutingAppender extends AppenderBase<ILoggingEvent> {\n    @Override\n    protected void append(ILoggingEvent eventObject) {\n        String logType = eventObject.getMDCPropertyMap().get("log_type");\n        \n        if ("AUDIT".equalsIgnoreCase(logType)) {\n            // Reenviar al appender de AUDIT_LOG_FILE\n        } else {\n            // Reenviar al appender de APP_LOG_FILE\n        }\n    }\n}\n\n// logback-spring.xml\n<appender name="ROUTING" class="...AuditRoutingAppender">\n    <appender-ref ref="AUDIT_LOG_FILE"/>\n    <appender-ref ref="APP_LOG_FILE"/>\n</appender>\n<root level="INFO">\n    <appender-ref ref="ROUTING"/>\n</root>`
+        }
+    };
+
+    document.addEventListener('DOMContentLoaded', () => {
+        const detailsPanel = document.getElementById('details-panel');
+        const components = document.querySelectorAll('.component');
+        const appLogArea = document.getElementById('log-app');
+        const auditLogArea = document.getElementById('log-audit');
+
+        const updateDetailsPanel = (target) => {
+            const content = detailsContent[target] || detailsContent.default;
+            detailsPanel.innerHTML = `
+                    <div class="details-panel-content">
+                        <h2 class="text-2xl font-bold mb-4 text-slate-700">${content.title}</h2>
+                        <p class="text-slate-600 mb-6">${content.description}</p>
+                        <div class="code-block">${content.code.trim()}</div>
+                    </div>
+                `;
+        };
+
+        components.forEach(comp => {
+            comp.addEventListener('click', () => {
+                components.forEach(c => c.classList.remove('active'));
+                comp.classList.add('active');
+                updateDetailsPanel(comp.dataset.target);
+            });
+        });
+
+        updateDetailsPanel('default');
+        document.getElementById('comp-request').classList.add('active');
+
+        const highlightComponent = (id, duration = 1000) => {
+            const el = document.getElementById(id);
+            if (el) {
+                el.classList.add('highlight-flow');
+                setTimeout(() => el.classList.remove('highlight-flow'), duration);
+            }
+        };
+
+        const generateRandomHex = (length) => [...Array(length)].map(() => Math.floor(Math.random() * 16).toString(16)).join('');
+
+        const formatLogMessage = (context, message, log_type = null) => {
+            const logObject = {
+                timestamp: new Date().toISOString(),
+                level: "INFO",
+                thread: "http-nio-8080-exec-1",
+                ...context,
+                message: message
+            };
+            if (log_type) {
+                logObject.log_type = log_type;
+            }
+            return JSON.stringify(logObject, null, 2);
+        };
+
+        const addLog = (area, text) => {
+            const pre = document.createElement('pre');
+            pre.textContent = text;
+            area.appendChild(pre);
+            area.scrollTop = area.scrollHeight;
+        };
+
+        const resetLogs = () => {
+            appLogArea.innerHTML = '';
+            auditLogArea.innerHTML = '';
+        };
+
+        document.getElementById('sim-reset').addEventListener('click', resetLogs);
+
+        document.getElementById('sim-get').addEventListener('click', () => {
+            resetLogs();
+            const context = {
+                traceId: generateRandomHex(16),
+                spanId: generateRandomHex(16),
+                internalTransactionId: `get-${generateRandomHex(8)}`,
+                transactionURI: "GET:/test-entities",
+                remoteIp: "198.51.100.1",
+                "x-user": "dev-user",
+                "x-organization-id": "org-123"
+            };
+
+            highlightComponent('comp-request');
+            setTimeout(() => highlightComponent('comp-interceptor'), 500);
+            setTimeout(() => highlightComponent('comp-controller'), 1000);
+            setTimeout(() => highlightComponent('comp-engine'), 1500);
+            setTimeout(() => highlightComponent('comp-applog'), 2000);
+
+            addLog(appLogArea, formatLogMessage(context, "Interceptor preHandle."));
+            addLog(appLogArea, formatLogMessage(context, "PlatformController#getAllTestEntities - Fetching all test entities."));
+            addLog(appLogArea, formatLogMessage(context, "Interceptor afterCompletion."));
+        });
+
+        document.getElementById('sim-post').addEventListener('click', () => {
+            resetLogs();
+            const context = {
+                traceId: generateRandomHex(16),
+                spanId: generateRandomHex(16),
+                internalTransactionId: `post-${generateRandomHex(8)}`,
+                transactionURI: "POST:/test-entities",
+                remoteIp: "203.0.113.45",
+                "x-user": "sim-user-prod",
+                "x-organization-id": "org-456"
+            };
+
+            highlightComponent('comp-request');
+            setTimeout(() => highlightComponent('comp-interceptor'), 500);
+            setTimeout(() => highlightComponent('comp-controller'), 1000);
+            setTimeout(() => highlightComponent('comp-hibernate'), 1500);
+            setTimeout(() => highlightComponent('comp-listeners'), 2000);
+            setTimeout(() => highlightComponent('comp-engine'), 2500);
+            setTimeout(() => highlightComponent('comp-auditlog'), 3000);
+            setTimeout(() => highlightComponent('comp-applog'), 3000);
+
+
+            addLog(appLogArea, formatLogMessage(context, "Interceptor preHandle."));
+            addLog(appLogArea, formatLogMessage(context, "PlatformController#saveTestEntity - Saving entity..."));
+
+            const auditMessage = `AUDIT - User 'sim-user-prod' Inserted: Type=[TestEntity], InsertedState={"name":"Simulated Entity","address":"123 Test St"}`;
+            addLog(auditLogArea, formatLogMessage(context, auditMessage, "AUDIT"));
+
+            addLog(appLogArea, formatLogMessage(context, "Interceptor afterCompletion."));
+        });
+    });
+</script>
+</body>
+</html>
