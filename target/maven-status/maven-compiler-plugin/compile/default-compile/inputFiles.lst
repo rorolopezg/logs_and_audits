@@ -1,0 +1,13 @@
+/Users/rodrigolopezgatica/Mis_Proyectos/Medium/Logs/LogsAndAudits/src/main/java/pa/com/segurossura/logsandaudit/LogsAndAuditsApplication.java
+/Users/rodrigolopezgatica/Mis_Proyectos/Medium/Logs/LogsAndAudits/src/main/java/pa/com/segurossura/logsandaudit/config/entitylisteners/EntityDeleteEventListener.java
+/Users/rodrigolopezgatica/Mis_Proyectos/Medium/Logs/LogsAndAudits/src/main/java/pa/com/segurossura/logsandaudit/config/entitylisteners/EntityInsertEventListener.java
+/Users/rodrigolopezgatica/Mis_Proyectos/Medium/Logs/LogsAndAudits/src/main/java/pa/com/segurossura/logsandaudit/config/entitylisteners/EntityUpdateEventListener.java
+/Users/rodrigolopezgatica/Mis_Proyectos/Medium/Logs/LogsAndAudits/src/main/java/pa/com/segurossura/logsandaudit/config/entitylisteners/HibernateListenerConfig.java
+/Users/rodrigolopezgatica/Mis_Proyectos/Medium/Logs/LogsAndAudits/src/main/java/pa/com/segurossura/logsandaudit/config/entitylisteners/ObjectUtils.java
+/Users/rodrigolopezgatica/Mis_Proyectos/Medium/Logs/LogsAndAudits/src/main/java/pa/com/segurossura/logsandaudit/config/logs/AuditRoutingAppender.java
+/Users/rodrigolopezgatica/Mis_Proyectos/Medium/Logs/LogsAndAudits/src/main/java/pa/com/segurossura/logsandaudit/controllers/PlatformController.java
+/Users/rodrigolopezgatica/Mis_Proyectos/Medium/Logs/LogsAndAudits/src/main/java/pa/com/segurossura/logsandaudit/model/entities/TestEntity.java
+/Users/rodrigolopezgatica/Mis_Proyectos/Medium/Logs/LogsAndAudits/src/main/java/pa/com/segurossura/logsandaudit/repositories/ITestEntityRepository.java
+/Users/rodrigolopezgatica/Mis_Proyectos/Medium/Logs/LogsAndAudits/src/main/java/pa/com/segurossura/logsandaudit/services/IPlatformService.java
+/Users/rodrigolopezgatica/Mis_Proyectos/Medium/Logs/LogsAndAudits/src/main/java/pa/com/segurossura/logsandaudit/services/PlatformServiceImpl.java
+/Users/rodrigolopezgatica/Mis_Proyectos/Medium/Logs/LogsAndAudits/src/main/java/pa/com/segurossura/logsandaudit/utils/security/SecurityUtils.java

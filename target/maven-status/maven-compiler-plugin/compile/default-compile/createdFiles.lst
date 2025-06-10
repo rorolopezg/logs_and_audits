@@ -1,0 +1,13 @@
+pa/com/segurossura/logsandaudit/config/entitylisteners/EntityDeleteEventListener.class
+pa/com/segurossura/logsandaudit/repositories/ITestEntityRepository.class
+pa/com/segurossura/logsandaudit/services/PlatformServiceImpl.class
+pa/com/segurossura/logsandaudit/config/logs/AuditRoutingAppender.class
+pa/com/segurossura/logsandaudit/config/entitylisteners/ObjectUtils.class
+pa/com/segurossura/logsandaudit/model/entities/TestEntity.class
+pa/com/segurossura/logsandaudit/config/entitylisteners/EntityUpdateEventListener.class
+pa/com/segurossura/logsandaudit/LogsAndAuditsApplication.class
+pa/com/segurossura/logsandaudit/config/entitylisteners/EntityInsertEventListener.class
+pa/com/segurossura/logsandaudit/services/IPlatformService.class
+pa/com/segurossura/logsandaudit/controllers/PlatformController.class
+pa/com/segurossura/logsandaudit/config/entitylisteners/HibernateListenerConfig.class
+pa/com/segurossura/logsandaudit/utils/security/SecurityUtils.class
