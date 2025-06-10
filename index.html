@@ -10,7 +10,6 @@
     <!-- Application Structure Plan: The SPA is structured as an interactive dashboard. The core is a visual architecture diagram where each component is clickable. Clicking a component updates a details panel with explanations and code snippets. This non-linear, explorative approach is more engaging for developers than a linear document. A simulation section provides a hands-on demonstration, showing how different actions produce different logs, solidifying the user's understanding of the flow. This structure was chosen to transform a linear technical document into an exploratory learning tool, which is more effective for understanding system architectures. -->
     <!-- Visualization & Content Choices: Main Visualization: Architecture Diagram. Goal: Organize/Relationships. Method: Interactive Diagram (HTML/CSS/JS). Interaction: Clicks on components update a detail view. Justification: This directly models the system's flow, which is the key concept of the report. Simulation: Log generation in text areas. Goal: Inform/Change. Method: Dynamic text blocks. Interaction: Buttons trigger log generation. Justification: Makes the abstract concept of log generation tangible and observable. No statistical charts were needed as the source material is conceptual. -->
     <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
-    <!-- Repushh -->
     <style>
         body {
             font-family: 'Inter', sans-serif;
@@ -87,75 +86,75 @@
     </header>
 
     <main class="grid grid-cols-1 lg:grid-cols-5 gap-8">
-        <section id="architecture-diagram" class="lg:col-span-3 bg-white p-6 rounded-xl shadow-lg border border-slate-200">
+        <section id="architecture-diagram" class="lg:col-span-2 bg-white p-6 rounded-xl shadow-lg border border-slate-200">
             <h2 class="text-2xl font-bold mb-6 text-center text-slate-700">Diagrama de Arquitectura</h2>
-            <div class="relative min-h-[700px] flex flex-col justify-around items-center">
+            <div class="relative min-h-[700px] flex flex-col justify-around items-center py-4">
                 <!-- Fila 1: Petición -->
                 <div class="flex justify-center">
-                    <div id="comp-request" class="component bg-slate-100 p-4 rounded-lg border-2 border-slate-300 w-48 text-center" data-target="request">
-                        <span class="text-4xl">📡</span>
-                        <h3 class="font-semibold mt-2">Petición HTTP</h3>
+                    <div id="comp-request" class="component bg-slate-100 p-3 rounded-lg border-2 border-slate-300 w-44 text-center" data-target="request">
+                        <span class="text-3xl">📡</span>
+                        <h3 class="font-semibold text-sm mt-1">Petición HTTP</h3>
                     </div>
                 </div>
-                <div class="text-3xl text-slate-400 my-1">↓</div>
+                <div class="text-2xl text-slate-400 my-1">↓</div>
 
                 <!-- Fila 2: Interceptor -->
                 <div class="flex justify-center">
-                    <div id="comp-interceptor" class="component bg-slate-100 p-4 rounded-lg border-2 border-slate-300 w-48 text-center" data-target="interceptor">
-                        <span class="text-4xl">🚦</span>
-                        <h3 class="font-semibold mt-2">Interceptor</h3>
+                    <div id="comp-interceptor" class="component bg-slate-100 p-3 rounded-lg border-2 border-slate-300 w-44 text-center" data-target="interceptor">
+                        <span class="text-3xl">🚦</span>
+                        <h3 class="font-semibold text-sm mt-1">Interceptor</h3>
                     </div>
                 </div>
-                <div class="text-3xl text-slate-400 my-1">↓</div>
+                <div class="text-2xl text-slate-400 my-1">↓</div>
 
                 <!-- Fila 3: Controller -->
                 <div class="flex justify-center">
-                    <div id="comp-controller" class="component bg-slate-100 p-4 rounded-lg border-2 border-slate-300 w-48 text-center" data-target="controller">
-                        <span class="text-4xl">🕹️</span>
-                        <h3 class="font-semibold mt-2">Controller/Service</h3>
+                    <div id="comp-controller" class="component bg-slate-100 p-3 rounded-lg border-2 border-slate-300 w-44 text-center" data-target="controller">
+                        <span class="text-3xl">🕹️</span>
+                        <h3 class="font-semibold text-sm mt-1">Controller/Service</h3>
                     </div>
                 </div>
-                <div class="text-3xl text-slate-400 my-1">↓</div>
+                <div class="text-2xl text-slate-400 my-1">↓</div>
 
                 <!-- Fila 4: Hibernate y Listeners -->
-                <div class="flex justify-center gap-8">
-                    <div id="comp-hibernate" class="component bg-slate-100 p-4 rounded-lg border-2 border-slate-300 w-48 text-center" data-target="hibernate">
-                        <span class="text-4xl">💾</span>
-                        <h3 class="font-semibold mt-2">Hibernate / DB</h3>
+                <div class="flex justify-center gap-4">
+                    <div id="comp-hibernate" class="component bg-slate-100 p-3 rounded-lg border-2 border-slate-300 w-44 text-center" data-target="hibernate">
+                        <span class="text-3xl">💾</span>
+                        <h3 class="font-semibold text-sm mt-1">Hibernate / DB</h3>
                     </div>
-                    <div id="comp-listeners" class="component bg-slate-100 p-4 rounded-lg border-2 border-slate-300 w-48 text-center" data-target="listeners">
-                        <span class="text-4xl">🎣</span>
-                        <h3 class="font-semibold mt-2">Hibernate Listeners</h3>
+                    <div id="comp-listeners" class="component bg-slate-100 p-3 rounded-lg border-2 border-slate-300 w-44 text-center" data-target="listeners">
+                        <span class="text-3xl">🎣</span>
+                        <h3 class="font-semibold text-sm mt-1">Hibernate Listeners</h3>
                     </div>
                 </div>
-                <div class="text-3xl text-slate-400 my-1">↓</div>
+                <div class="text-2xl text-slate-400 my-1">↓</div>
 
                 <!-- Fila 5: Motor de Logging -->
                 <div class="flex justify-center">
-                    <div id="comp-engine" class="component bg-violet-100 p-4 rounded-lg border-2 border-violet-300 w-48 text-center" data-target="engine">
-                        <span class="text-4xl">⚙️</span>
-                        <h3 class="font-semibold mt-2">Motor de Logging</h3>
+                    <div id="comp-engine" class="component bg-violet-100 p-3 rounded-lg border-2 border-violet-300 w-44 text-center" data-target="engine">
+                        <span class="text-3xl">⚙️</span>
+                        <h3 class="font-semibold text-sm mt-1">Motor de Logging</h3>
                     </div>
                 </div>
-                <div class="text-3xl text-slate-400 my-1">↓</div>
+                <div class="text-2xl text-slate-400 my-1">↓</div>
 
                 <!-- Fila 6: Logs -->
-                <div class="flex justify-center gap-8">
-                    <div id="comp-applog" class="component bg-sky-100 p-4 rounded-lg border-2 border-sky-300 w-48 text-center" data-target="applog">
-                        <span class="text-4xl">📄</span>
-                        <h3 class="font-semibold mt-2">application.log</h3>
+                <div class="flex justify-center gap-4">
+                    <div id="comp-applog" class="component bg-sky-100 p-3 rounded-lg border-2 border-sky-300 w-44 text-center" data-target="applog">
+                        <span class="text-3xl">📄</span>
+                        <h3 class="font-semibold text-sm mt-1">application.log</h3>
                         <p class="text-xs text-slate-500">Log Transaccional</p>
                     </div>
-                    <div id="comp-auditlog" class="component bg-amber-100 p-4 rounded-lg border-2 border-amber-300 w-48 text-center" data-target="auditlog">
-                        <span class="text-4xl">📜</span>
-                        <h3 class="font-semibold mt-2">audit.log</h3>
+                    <div id="comp-auditlog" class="component bg-amber-100 p-3 rounded-lg border-2 border-amber-300 w-44 text-center" data-target="auditlog">
+                        <span class="text-3xl">📜</span>
+                        <h3 class="font-semibold text-sm mt-1">audit.log</h3>
                         <p class="text-xs text-slate-500">Log de Auditoría</p>
                     </div>
                 </div>
             </div>
         </section>
 
-        <section id="details-panel" class="lg:col-span-2 bg-white p-6 rounded-xl shadow-lg border border-slate-200">
+        <section id="details-panel" class="lg:col-span-3 bg-white p-6 rounded-xl shadow-lg border border-slate-200">
         </section>
     </main>
 
