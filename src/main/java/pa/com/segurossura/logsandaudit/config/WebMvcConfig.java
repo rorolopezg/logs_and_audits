@@ -15,6 +15,6 @@ public class WebMvcConfig implements WebMvcConfigurer {
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
         // Añade tu interceptor para que se aplique a todas las peticiones a la API
-        registry.addInterceptor(transactionContextInterceptor).addPathPatterns("/test-entities/**"); // Ajusta el patrón de URL según tu estructura
+        registry.addInterceptor(transactionContextInterceptor).addPathPatterns("/test-entities/**", "/test-entities-paged/**"); // Ajusta el patrón de URL según tu estructura
     }
 }

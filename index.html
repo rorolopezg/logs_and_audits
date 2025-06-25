@@ -199,7 +199,7 @@
         controller: {
             title: 'Lógica de Negocio: Controller y Service',
             description: 'Aquí es donde reside la lógica principal de la aplicación. Los controladores reciben la petición y orquestan las operaciones, a menudo delegando en las capas de servicio. Los logs generados en esta capa (`log.info`, `log.error`, etc.) son logs transaccionales y se benefician directamente del contexto añadido por el interceptor.',
-            code: `// PlatformController.java\n@RestController\n@Slf4j\npublic class PlatformController {\n    // ...\n    @PostMapping("/test-entities")\n    public ResponseEntity<?> saveTestEntity(@RequestBody TestEntity testEntity) {\n        // Este log contendrá el internalTransactionId y otros datos del MDC\n        log.info("Saving test entity: {}", testEntity); \n        TestEntity savedEntity = platformService.saveTestEntity(testEntity);\n        return ResponseEntity.ok(savedEntity);\n    }\n}`
+            code: `// PlatformController.java\n@RestController\n@Slf4j\npublic class PlatformController {\n    // ...\n    @PostMapping("/test-entities")\n    public ResponseEntity<?> savePerson(@RequestBody Person person) {\n        // Este log contendrá el internalTransactionId y otros datos del MDC\n        log.info("Saving test entity: {}", person); \n        Person savedEntity = platformService.savePerson(person);\n        return ResponseEntity.ok(savedEntity);\n    }\n}`
         },
         applog: {
             title: 'El Log Transaccional: application.log',
@@ -209,7 +209,7 @@
         hibernate: {
             title: 'Persistencia: Hibernate y Base de Datos',
             description: 'Cuando la lógica de negocio requiere un cambio en los datos, interactúa con la base de datos a través de Hibernate. Cada operación de guardado (`save`), actualización (`update`) o borrado (`delete`) desencadena eventos internos en el motor de Hibernate.',
-            code: `// ITestEntityRepository.java\npublic interface ITestEntityRepository extends JpaRepository<TestEntity, UUID> {\n    // Spring Data JPA crea las implementaciones de save(), findAll(), etc.\n    // Cada llamada a save(), por ejemplo, puede disparar un evento de inserción o actualización.\n}`
+            code: `// IPersonRepository.java\npublic interface IPersonRepository extends JpaRepository<Person, UUID> {\n    // Spring Data JPA crea las implementaciones de save(), findAll(), etc.\n    // Cada llamada a save(), por ejemplo, puede disparar un evento de inserción o actualización.\n}`
         },
         listeners: {
             title: 'Parte 2: Listeners de Hibernate - La Magia de la Auditoría Automática',
@@ -340,9 +340,9 @@
 
 
             addLog(appLogArea, formatLogMessage(context, "Interceptor preHandle."));
-            addLog(appLogArea, formatLogMessage(context, "PlatformController#saveTestEntity - Saving entity..."));
+            addLog(appLogArea, formatLogMessage(context, "PlatformController#savePerson - Saving entity..."));
 
-            const auditMessage = `AUDIT - User 'sim-user-prod' Inserted: Type=[TestEntity], InsertedState={"name":"Simulated Entity","address":"123 Test St"}`;
+            const auditMessage = `AUDIT - User 'sim-user-prod' Inserted: Type=[Person], InsertedState={"name":"Simulated Entity","address":"123 Test St"}`;
             addLog(auditLogArea, formatLogMessage(context, auditMessage, "AUDIT"));
 
             addLog(appLogArea, formatLogMessage(context, "Interceptor afterCompletion."));

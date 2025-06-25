@@ -21,6 +21,7 @@
 		<jackson-databind>2.18.0</jackson-databind>
 		<micrometer-tracing.version>1.5.1</micrometer-tracing.version>
 		<lombok.version>1.18.38</lombok.version>
+		<mapstruct.version>1.6.3</mapstruct.version>
 	</properties>
 	<dependencies>
 		<dependency>
@@ -58,16 +59,10 @@
 		<dependency>
 			<groupId>io.micrometer</groupId>
 			<artifactId>micrometer-tracing-bridge-brave</artifactId>
-			<!--
-			<version>${micrometer-tracing.version}</version>
-			-->
 		</dependency>
 		<dependency>
 			<groupId>io.micrometer</groupId>
 			<artifactId>micrometer-tracing</artifactId>
-			<!--
-			<version>${micrometer-tracing.version}</version>
-			-->
 		</dependency>
 		<dependency>
 			<groupId>ch.qos.logback</groupId>
@@ -100,8 +95,40 @@
 		<dependency>
 			<groupId>org.projectlombok</groupId>
 			<artifactId>lombok</artifactId>
-			<!--<version>${lombok.version}</version>-->
-			<optional>true</optional>
+			<version>${lombok.version}</version>
+			<!--<optional>true</optional>-->
+			<scope>provided</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>com.fasterxml.jackson.datatype</groupId>
+			<artifactId>jackson-datatype-hibernate6</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>com.fasterxml.jackson.datatype</groupId>
+			<artifactId>jackson-datatype-jdk8</artifactId>
+		</dependency>
+
+
+		<dependency>
+			<groupId>org.mapstruct</groupId>
+			<artifactId>mapstruct</artifactId>
+			<version>${mapstruct.version}</version>
+		</dependency>
+
+		<!--
+		<dependency>
+			<groupId>org.mapstruct</groupId>
+			<artifactId>mapstruct-processor</artifactId>
+			<version>${mapstruct.version}</version>
+		</dependency>
+		-->
+
+		<dependency>
+			<groupId>org.projectlombok</groupId>
+			<artifactId>lombok-mapstruct-binding</artifactId>
+			<version>0.2.0</version>
 		</dependency>
 	</dependencies>
 
@@ -123,12 +150,26 @@
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-compiler-plugin</artifactId>
 				<configuration>
+					<source>24</source> <!-- o la versión de Java que uses -->
+					<target>24</target>
 					<annotationProcessorPaths>
+						<!-- Lombok -->
 						<path>
 							<groupId>org.projectlombok</groupId>
 							<artifactId>lombok</artifactId>
+							<version>${lombok.version}</version> <!-- usa la versión que tengas -->
+						</path>
+						<!-- MapStruct -->
+						<path>
+							<groupId>org.mapstruct</groupId>
+							<artifactId>mapstruct-processor</artifactId>
+							<version>${mapstruct.version}</version>
 						</path>
 					</annotationProcessorPaths>
+					<!-- Esta línea es opcional pero buena práctica -->
+					<compilerArgs>
+						<arg>-Amapstruct.defaultComponentModel=spring</arg>
+					</compilerArgs>
 				</configuration>
 			</plugin>
 			<plugin>
@@ -142,6 +183,13 @@
 						</exclude>
 					</excludes>
 				</configuration>
+				<executions>
+					<execution>
+						<goals>
+							<goal>build-info</goal>
+						</goals>
+					</execution>
+				</executions>
 			</plugin>
 
 		</plugins>
