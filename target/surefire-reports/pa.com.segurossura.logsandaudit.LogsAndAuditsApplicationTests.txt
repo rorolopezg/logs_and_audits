@@ -1,4 +1,4 @@
 -------------------------------------------------------------------------------
 Test set: pa.com.segurossura.logsandaudit.LogsAndAuditsApplicationTests
 -------------------------------------------------------------------------------
-Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 2.591 s -- in pa.com.segurossura.logsandaudit.LogsAndAuditsApplicationTests
+Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 4.315 s -- in pa.com.segurossura.logsandaudit.LogsAndAuditsApplicationTests

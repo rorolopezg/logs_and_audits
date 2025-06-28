@@ -142,7 +142,7 @@
                 <div class="flex justify-center gap-4">
                     <div id="comp-applog" class="component bg-sky-100 p-3 rounded-lg border-2 border-sky-300 w-44 text-center" data-target="applog">
                         <span class="text-3xl">📄</span>
-                        <h3 class="font-semibold text-sm mt-1">application.log</h3>
+                        <h3 class="font-semibold text-sm mt-1">api.log</h3>
                         <p class="text-xs text-slate-500">Log Transaccional</p>
                     </div>
                     <div id="comp-auditlog" class="component bg-amber-100 p-3 rounded-lg border-2 border-amber-300 w-44 text-center" data-target="auditlog">
@@ -168,7 +168,7 @@
         </div>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-                <h3 class="log-area-title">📄 application.log</h3>
+                <h3 class="log-area-title">📄 api.log</h3>
                 <div id="log-app" class="log-area"></div>
             </div>
             <div>
@@ -202,9 +202,9 @@
             code: `// PlatformController.java\n@RestController\n@Slf4j\npublic class PlatformController {\n    // ...\n    @PostMapping("/test-entities")\n    public ResponseEntity<?> savePerson(@RequestBody Person person) {\n        // Este log contendrá el internalTransactionId y otros datos del MDC\n        log.info("Saving test entity: {}", person); \n        Person savedEntity = platformService.savePerson(person);\n        return ResponseEntity.ok(savedEntity);\n    }\n}`
         },
         applog: {
-            title: 'El Log Transaccional: application.log',
+            title: 'El Log Transaccional: api.log',
             description: 'Este archivo es la bitácora del día a día de la aplicación. Contiene el flujo de ejecución, advertencias, errores y cualquier información de diagnóstico. Gracias al interceptor y al MDC, cada línea de log aquí está enriquecida con un contexto invaluable que permite agrupar y filtrar logs por transacción.',
-            code: `// Ejemplo de una línea en application.log (en formato JSON)\n{\n  "timestamp": "2025-06-10T16:30:00Z",\n  "level": "INFO",\n  "thread": "http-nio-8080-exec-1",\n  "logger": "c.s.l.controllers.PlatformController",\n  "message": "Saving test entity: ...",\n  "traceId": "a1b2c3d4e5f6a1b2",\n  "spanId": "f1e2d3c4b5a6f1e2",\n  "internalTransactionId": "f47ac10b-58cc-4372-a567-0e02b2c3d479",\n  "transactionURI": "POST:/test-entities",\n  "x-user": "developer_1",\n  "remoteIp": "192.168.1.10"\n}`
+            code: `// Ejemplo de una línea en api.log (en formato JSON)\n{\n  "timestamp": "2025-06-10T16:30:00Z",\n  "level": "INFO",\n  "thread": "http-nio-8080-exec-1",\n  "logger": "c.s.l.controllers.PlatformController",\n  "message": "Saving test entity: ...",\n  "traceId": "a1b2c3d4e5f6a1b2",\n  "spanId": "f1e2d3c4b5a6f1e2",\n  "internalTransactionId": "f47ac10b-58cc-4372-a567-0e02b2c3d479",\n  "transactionURI": "POST:/test-entities",\n  "x-user": "developer_1",\n  "remoteIp": "192.168.1.10"\n}`
         },
         hibernate: {
             title: 'Persistencia: Hibernate y Base de Datos',
@@ -223,7 +223,7 @@
         },
         engine: {
             title: 'Parte 3: El Motor de Logging - Enrutando y Formateando',
-            description: 'El `logback-spring.xml` y la clase `AuditRoutingAppender` trabajan juntos como el sistema de enrutamiento. Logback captura todos los logs y los pasa al `AuditRoutingAppender`. Este appender personalizado revisa el MDC en busca de la bandera `log_type`. Si es "AUDIT", lo envía a `audit.log`; si no, a `application.log`.',
+            description: 'El `logback-spring.xml` y la clase `AuditRoutingAppender` trabajan juntos como el sistema de enrutamiento. Logback captura todos los logs y los pasa al `AuditRoutingAppender`. Este appender personalizado revisa el MDC en busca de la bandera `log_type`. Si es "AUDIT", lo envía a `audit.log`; si no, a `api.log`.',
             code: `// AuditRoutingAppender.java\npublic class AuditRoutingAppender extends AppenderBase<ILoggingEvent> {\n    @Override\n    protected void append(ILoggingEvent eventObject) {\n        String logType = eventObject.getMDCPropertyMap().get("log_type");\n        \n        if ("AUDIT".equalsIgnoreCase(logType)) {\n            // Reenviar al appender de AUDIT_LOG_FILE\n        } else {\n            // Reenviar al appender de APP_LOG_FILE\n        }\n    }\n}\n\n// logback-spring.xml\n<appender name="ROUTING" class="...AuditRoutingAppender">\n    <appender-ref ref="AUDIT_LOG_FILE"/>\n    <appender-ref ref="APP_LOG_FILE"/>\n</appender>\n<root level="INFO">\n    <appender-ref ref="ROUTING"/>\n</root>`
         }
     };

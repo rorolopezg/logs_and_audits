@@ -11,7 +11,6 @@ import org.springframework.transaction.annotation.Transactional;
 import pa.com.segurossura.logsandaudit.model.dto.PartialPersonDTO;
 import pa.com.segurossura.logsandaudit.model.dto.PersonDTO;
 import pa.com.segurossura.logsandaudit.model.dto.transversal.PageDTO;
-import pa.com.segurossura.logsandaudit.model.dto.transversal.PageableDTO;
 import pa.com.segurossura.logsandaudit.model.entities.Person;
 import pa.com.segurossura.logsandaudit.model.mappers.PersonMapper;
 import pa.com.segurossura.logsandaudit.repositories.IPersonRepository;
@@ -22,16 +21,16 @@ import java.util.UUID;
 
 @Service
 public class PlatformServiceImpl implements IPlatformService {
-    private final IPersonRepository testRepository;
+    private final IPersonRepository personRepository;
     private final ObjectMapper objectMapper;
     private final PersonMapper personMapper;
 
     public PlatformServiceImpl(
-            IPersonRepository testRepository,
+            IPersonRepository personRepository,
             ObjectMapper objectMapper,
             PersonMapper personMapper
     ) {
-        this.testRepository = testRepository;
+        this.personRepository = personRepository;
         this.objectMapper = objectMapper;
         this.personMapper = personMapper;
     }
@@ -39,9 +38,9 @@ public class PlatformServiceImpl implements IPlatformService {
     @Override
     @Transactional(readOnly = true)
     public Optional<PersonDTO> findPersonById(UUID id) {
-        Optional<PersonDTO> result = testRepository.findById(id).map(person -> {
+        Optional<PersonDTO> result = personRepository.findById(id).map(person -> {
             try {
-                person.getIdentificationDocuments().size(); // Force loading of identificationDocuments
+                //person.getIdentificationDocuments().size(); // Force loading of identificationDocuments
                 return objectMapper.convertValue(person, PersonDTO.class);
             } catch (Exception e) {
                 throw new RuntimeException("Error converting Person to PersonDTO", e);
@@ -53,8 +52,9 @@ public class PlatformServiceImpl implements IPlatformService {
     @Override
     @Transactional(readOnly = true)
     public List<PersonDTO> findAllPerson() {
-        List<PersonDTO> result = testRepository.findAll().stream().map(person -> {
+        List<PersonDTO> result = personRepository.findAll().stream().map(person -> {
             try {
+                //person.getIdentificationDocuments().size(); // Force loading of identificationDocuments
                 return objectMapper.convertValue(person, PersonDTO.class);
             } catch (Exception e) {
                 throw new RuntimeException("Error converting Person to PersonDTO", e);
@@ -67,7 +67,12 @@ public class PlatformServiceImpl implements IPlatformService {
     @Transactional(readOnly = true)
     public PageDTO findAllPersonPaged(Integer pageNumber, Integer pageSize) {
         Pageable pageable = PageRequest.of(pageNumber, pageSize, Sort.by("id").descending());
-        Page<Person> personPage = testRepository.findAll(pageable);
+        Page<Person> personPage = personRepository.findAll(pageable);
+        /*
+        for (Person person : personPage.getContent()) {
+            person.getIdentificationDocuments().size(); // Force loading of identificationDocuments
+        }
+        */
         PageDTO<PersonDTO> result;
 
         result = objectMapper.convertValue(personPage, PageDTO.class);
@@ -85,7 +90,7 @@ public class PlatformServiceImpl implements IPlatformService {
     @Transactional(readOnly = true)
     public Page<Person> findAllPersonPaged2(Integer pageNumber, Integer pageSize) {
         Pageable pageable = PageRequest.of(pageNumber, pageSize, Sort.by("id").descending());
-        Page<Person> personPage = testRepository.findAll(pageable);
+        Page<Person> personPage = personRepository.findAll(pageable);
 
         return personPage;
     }
@@ -96,7 +101,7 @@ public class PlatformServiceImpl implements IPlatformService {
         if (personDTO.getId() != null) {
             throw new IllegalArgumentException("PersonDTO id must be null in create operation");
         }
-        testRepository.findByName(personDTO.getName())
+        personRepository.findByName(personDTO.getName())
                 .ifPresent(existingEntity -> {
                     throw new RuntimeException("Person with id " + personDTO.getName() + " already exists");
                 });
@@ -104,7 +109,7 @@ public class PlatformServiceImpl implements IPlatformService {
         person.getIdentificationDocuments().forEach(document -> {
             document.setPerson(person); // Set the person reference in each document
         });
-        testRepository.save(person);
+        personRepository.save(person);
         PersonDTO savedEntityDTO = objectMapper.convertValue(person, PersonDTO.class);
         return savedEntityDTO;
     }
@@ -118,7 +123,7 @@ public class PlatformServiceImpl implements IPlatformService {
         if (personDTO.getId() != null && !personDTO.getId().equals(id)) {
             throw new IllegalArgumentException("PersonDTO id does not match the path variable id");
         }
-        Person existingEntity = testRepository.findById(id)
+        Person existingEntity = personRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Person with id " + personDTO.getId() + " does not exist"));
 
         objectMapper.updateValue(existingEntity, personDTO);
@@ -126,7 +131,7 @@ public class PlatformServiceImpl implements IPlatformService {
         existingEntity.getIdentificationDocuments().forEach(document -> {
             document.setPerson(existingEntity); // Set the person reference in each document
         });
-        testRepository.save(existingEntity);
+        personRepository.save(existingEntity);
         PersonDTO updatedEntityDTO = objectMapper.convertValue(existingEntity, PersonDTO.class);
 
         return updatedEntityDTO;
@@ -134,11 +139,11 @@ public class PlatformServiceImpl implements IPlatformService {
 
     @Override
     public PersonDTO patchPerson(UUID id, PartialPersonDTO personDTO) {
-        Person existingEntity = testRepository.findById(id)
+        Person existingEntity = personRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Person with id " + id + " does not exist"));
 
         personMapper.patchPersonFromDto(personDTO, existingEntity);
-        existingEntity = testRepository.save(existingEntity);
+        existingEntity = personRepository.save(existingEntity);
 
         PersonDTO existingEntityDTO = objectMapper.convertValue(existingEntity, PersonDTO.class);
         return existingEntityDTO;

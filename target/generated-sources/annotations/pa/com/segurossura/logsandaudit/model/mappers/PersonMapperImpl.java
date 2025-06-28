@@ -8,7 +8,7 @@ import pa.com.segurossura.logsandaudit.model.entities.Person;
 
 @Generated(
     value = "org.mapstruct.ap.MappingProcessor",
-    date = "2025-06-25T07:52:20-0400",
+    date = "2025-06-28T02:13:05-0400",
     comments = "version: 1.6.3, compiler: javac, environment: Java 24.0.1 (Eclipse Adoptium)"
 )
 @Component

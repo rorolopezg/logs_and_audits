@@ -1,5 +1,6 @@
 /Users/rodrigolopezgatica/Mis_Proyectos/Medium/Logs/logs_and_audits/src/main/java/pa/com/segurossura/logsandaudit/LogsAndAuditsApplication.java
 /Users/rodrigolopezgatica/Mis_Proyectos/Medium/Logs/logs_and_audits/src/main/java/pa/com/segurossura/logsandaudit/config/ApplicationConfig.java
+/Users/rodrigolopezgatica/Mis_Proyectos/Medium/Logs/logs_and_audits/src/main/java/pa/com/segurossura/logsandaudit/config/JacksonConfig.java
 /Users/rodrigolopezgatica/Mis_Proyectos/Medium/Logs/logs_and_audits/src/main/java/pa/com/segurossura/logsandaudit/config/WebMvcConfig.java
 /Users/rodrigolopezgatica/Mis_Proyectos/Medium/Logs/logs_and_audits/src/main/java/pa/com/segurossura/logsandaudit/config/entitylisteners/EntityDeleteEventListener.java
 /Users/rodrigolopezgatica/Mis_Proyectos/Medium/Logs/logs_and_audits/src/main/java/pa/com/segurossura/logsandaudit/config/entitylisteners/EntityInsertEventListener.java
@@ -11,11 +12,13 @@
 /Users/rodrigolopezgatica/Mis_Proyectos/Medium/Logs/logs_and_audits/src/main/java/pa/com/segurossura/logsandaudit/config/interceptors/TransactionContextInterceptor.java
 /Users/rodrigolopezgatica/Mis_Proyectos/Medium/Logs/logs_and_audits/src/main/java/pa/com/segurossura/logsandaudit/config/logs/AuditRoutingAppender.java
 /Users/rodrigolopezgatica/Mis_Proyectos/Medium/Logs/logs_and_audits/src/main/java/pa/com/segurossura/logsandaudit/controllers/PlatformController.java
+/Users/rodrigolopezgatica/Mis_Proyectos/Medium/Logs/logs_and_audits/src/main/java/pa/com/segurossura/logsandaudit/model/dto/IdentificationDocumentDTO.java
 /Users/rodrigolopezgatica/Mis_Proyectos/Medium/Logs/logs_and_audits/src/main/java/pa/com/segurossura/logsandaudit/model/dto/PartialPersonDTO.java
 /Users/rodrigolopezgatica/Mis_Proyectos/Medium/Logs/logs_and_audits/src/main/java/pa/com/segurossura/logsandaudit/model/dto/PersonDTO.java
 /Users/rodrigolopezgatica/Mis_Proyectos/Medium/Logs/logs_and_audits/src/main/java/pa/com/segurossura/logsandaudit/model/dto/transversal/PageDTO.java
 /Users/rodrigolopezgatica/Mis_Proyectos/Medium/Logs/logs_and_audits/src/main/java/pa/com/segurossura/logsandaudit/model/dto/transversal/PageableDTO.java
 /Users/rodrigolopezgatica/Mis_Proyectos/Medium/Logs/logs_and_audits/src/main/java/pa/com/segurossura/logsandaudit/model/dto/transversal/SortDTO.java
+/Users/rodrigolopezgatica/Mis_Proyectos/Medium/Logs/logs_and_audits/src/main/java/pa/com/segurossura/logsandaudit/model/entities/IdentificationDocument.java
 /Users/rodrigolopezgatica/Mis_Proyectos/Medium/Logs/logs_and_audits/src/main/java/pa/com/segurossura/logsandaudit/model/entities/Person.java
 /Users/rodrigolopezgatica/Mis_Proyectos/Medium/Logs/logs_and_audits/src/main/java/pa/com/segurossura/logsandaudit/model/mappers/OptionalMapper.java
 /Users/rodrigolopezgatica/Mis_Proyectos/Medium/Logs/logs_and_audits/src/main/java/pa/com/segurossura/logsandaudit/model/mappers/PersonMapper.java

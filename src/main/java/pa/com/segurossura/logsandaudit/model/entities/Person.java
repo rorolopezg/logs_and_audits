@@ -9,6 +9,7 @@ import org.hibernate.annotations.JdbcTypeCode;
 
 import java.sql.Types;
 import java.time.LocalDate;
+import java.util.LinkedHashSet;
 import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
@@ -30,7 +31,7 @@ public class Person {
     private String address;
     @Column(name = "birth_date", nullable = true)
     private LocalDate birthDate;
-    @OneToMany(mappedBy = "person", cascade = CascadeType.ALL, fetch = FetchType.EAGER, orphanRemoval = false)
+    @OneToMany(mappedBy = "person", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = false)
     private Set<IdentificationDocument> identificationDocuments;
 
     public Person(UUID id, String name) {
@@ -47,10 +48,11 @@ public class Person {
 
     // method to add an identification document
     public void addIdentificationDocument(IdentificationDocument document) {
-        if (identificationDocuments != null) {
-            identificationDocuments.add(document);
-            document.setPerson(this);
+        if (identificationDocuments == null) {
+            identificationDocuments = new LinkedHashSet<>();
         }
+        identificationDocuments.add(document);
+        document.setPerson(this);
     }
 
     // method to remove an identification document

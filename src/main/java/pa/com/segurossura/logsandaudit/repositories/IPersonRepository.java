@@ -1,5 +1,7 @@
 package pa.com.segurossura.logsandaudit.repositories;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import pa.com.segurossura.logsandaudit.model.entities.Person;
@@ -15,7 +17,11 @@ public interface IPersonRepository extends JpaRepository<Person, UUID> {
     Optional<Person> findById(UUID id);
 
     @Override
-    //@EntityGraph(attributePaths = {"identificationDocuments"})
+    @EntityGraph(attributePaths = {"identificationDocuments"})
     List<Person> findAll();
+
+    @Override
+    @EntityGraph(attributePaths = {"identificationDocuments"})
+    Page<Person> findAll(Pageable pageable);
 
 }
