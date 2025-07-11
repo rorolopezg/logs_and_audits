@@ -17,15 +17,24 @@ public class AuditRoutingAppender extends AppenderBase<ILoggingEvent>
     protected void append(ILoggingEvent eventObject) {
         String logType = eventObject.getMDCPropertyMap().get("log_type");
         Iterator<Appender<ILoggingEvent>> it = appenderAttachable.iteratorForAppenders();
-        while (it.hasNext()) {
-            Appender<ILoggingEvent> appender = it.next();
-            String name = appender.getName();
-            if ("AUDIT".equalsIgnoreCase(logType) && "AUDIT_LOG_FILE".equalsIgnoreCase(name)) {
-                appender.doAppend(eventObject);
-                return;
-            } else if (!"AUDIT".equalsIgnoreCase(logType) && "APP_LOG_FILE".equalsIgnoreCase(name)) {
-                appender.doAppend(eventObject);
-                return;
+
+        if ("AUDIT".equalsIgnoreCase(logType)) {
+            // Si es de auditoría, envíalo a todos los appenders de auditoría
+            while (it.hasNext()) {
+                Appender<ILoggingEvent> appender = it.next();
+                String name = appender.getName();
+                if ("AUDIT_LOG_FILE".equalsIgnoreCase(name) || "ASYNC_DB_AUDIT".equalsIgnoreCase(name)) {
+                    appender.doAppend(eventObject);
+                }
+            }
+        } else {
+            // Si no, envíalo solo al appender de aplicación
+            while (it.hasNext()) {
+                Appender<ILoggingEvent> appender = it.next();
+                if ("APP_LOG_FILE".equalsIgnoreCase(appender.getName())) {
+                    appender.doAppend(eventObject);
+                    return; // Aquí sí podemos retornar porque solo hay un destino
+                }
             }
         }
     }

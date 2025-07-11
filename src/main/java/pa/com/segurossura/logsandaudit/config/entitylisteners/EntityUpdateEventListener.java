@@ -9,7 +9,8 @@ import org.hibernate.persister.entity.EntityPersister;
 import org.slf4j.MDC;
 import org.springframework.stereotype.Component;
 import pa.com.segurossura.logsandaudit.config.interceptors.TransactionContextInterceptor;
-import pa.com.segurossura.logsandaudit.utils.security.SecurityUtils;
+import pa.com.segurossura.logsandaudit.model.entities.audit.AuditLog;
+import pa.com.segurossura.logsandaudit.security.utils.SecurityUtils;
 
 import java.io.Serializable;
 import java.util.HashMap;
@@ -17,12 +18,13 @@ import java.util.Map;
 
 import static pa.com.segurossura.logsandaudit.config.entitylisteners.HibernateListenerConfig.LOG_TYPE_AUDIT;
 import static pa.com.segurossura.logsandaudit.config.entitylisteners.HibernateListenerConfig.LOG_TYPE_KEY;
+import static pa.com.segurossura.logsandaudit.config.interceptors.TransactionContextInterceptor.TRANSACTION_ACTION_KEY;
 
 
 @Component
 @Slf4j
 public class EntityUpdateEventListener implements PostUpdateEventListener {
-    private final static String UPDATED = "updated";
+    private final static String UPDATE = "UPDATE";
     private final ObjectMapper objectMapper;
 
     public EntityUpdateEventListener(ObjectMapper objectMapper) {
@@ -31,6 +33,11 @@ public class EntityUpdateEventListener implements PostUpdateEventListener {
 
     @Override
     public void onPostUpdate(PostUpdateEvent event) {
+        // *** SOLUCIÓN A LA RECURSIÓN ***
+        // Si la entidad que se está actualizando es un AuditLog, no hacer nada.
+        if (event.getEntity() instanceof AuditLog) {
+            return;
+        }
         EntityPersister persister = event.getPersister();
         String entityName = event.getEntity().getClass().getSimpleName();//persister.getEntityName();
         Serializable id = (Serializable) event.getId();
@@ -40,17 +47,20 @@ public class EntityUpdateEventListener implements PostUpdateEventListener {
         String[] propertyNames = persister.getPropertyNames();
 
         String user = SecurityUtils.getCurrentUserLogin();
+        String userId = SecurityUtils.getCurrentUserObjectId();
         String transactionId = MDC.get(TransactionContextInterceptor.TRANSACTION_ID_KEY);
         String transactionAction = MDC.get(TransactionContextInterceptor.TRANSACTION_ACTION_KEY);
 
 
         try {
             MDC.put(LOG_TYPE_KEY, LOG_TYPE_AUDIT);
+            MDC.put(TRANSACTION_ACTION_KEY, UPDATE);
             // Si oldState es null, no podemos determinar los cambios específicos de esta manera.
             // Esto ya se manejaba en la versión anterior, lo mantenemos.
             if (oldState == null) {
                 String jsonNewStateOnly = convertStateMapToJson(buildStateMap(propertyNames, newState), entityName, id, "NewState");
-                log.warn("AUDIT - User '{}' Update (OldState not available): Type=[{}], ID=[{}], NewState={}",
+                log.warn("AUDIT - userId '{}' userName '{}' Update (OldState not available): Type=[{}], ID=[{}], NewState={}",
+                        userId,
                         user,
                         entityName,
                         id,
@@ -73,7 +83,8 @@ public class EntityUpdateEventListener implements PostUpdateEventListener {
                     id
             );
 
-            log.info("AUDIT - User '{}' Updated: Type=[{}], ID=[{}], OldState={}, NewState={}, ChangedProperties={}",
+            log.info("AUDIT - userId '{}' userName '{}' has updated: Type=[{}], ID=[{}], OldState={}, NewState={}, ChangedProperties={}",
+                    userId,
                     user,
                     entityName,
                     id,
@@ -82,6 +93,7 @@ public class EntityUpdateEventListener implements PostUpdateEventListener {
                     jsonChangedProperties);
         } finally {
             MDC.remove(LOG_TYPE_KEY);
+            MDC.remove(TRANSACTION_ACTION_KEY);
         }
     }
 

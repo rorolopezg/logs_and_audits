@@ -3,6 +3,11 @@ package pa.com.segurossura.logsandaudit.controllers;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
 import pa.com.segurossura.logsandaudit.model.dto.PartialPersonDTO;
 import pa.com.segurossura.logsandaudit.model.dto.PersonDTO;
@@ -11,7 +16,9 @@ import pa.com.segurossura.logsandaudit.services.IPlatformService;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @RestController
 @Slf4j
@@ -23,7 +30,8 @@ public class PlatformController {
     }
 
     @GetMapping("/test-entities")
-    public ResponseEntity<?> findAllPerson() {
+    @PreAuthorize("hasRole('Ejecutivo') or hasAuthority('SCOPE_Ejecutivo')")
+    public ResponseEntity<?> findAllPerson(@AuthenticationPrincipal Jwt jwt, Authentication authentication) {
         log.info("Fetching all person");
         List<PersonDTO> entityList = platformService.findAllPerson();
         log.info("End fetching all person, found: {}", entityList.size());
@@ -52,6 +60,7 @@ public class PlatformController {
     }
 
     @PostMapping("/test-entities")
+    @PreAuthorize("hasRole('Ejecutivo') or hasAuthority('SCOPE_Ejecutivo')")
     public ResponseEntity<?> createPerson(@RequestBody PersonDTO personDTO) {
         log.info("Creating person: {}", personDTO);
         PersonDTO savedEntity = platformService.createPerson(personDTO);
@@ -60,6 +69,7 @@ public class PlatformController {
     }
 
     @PutMapping("/test-entities/{id}")
+    @PreAuthorize("hasRole('Ejecutivo') or hasAuthority('SCOPE_Ejecutivo')")
     public ResponseEntity<?> updatePerson(@PathVariable UUID id, @RequestBody PersonDTO personDTO) throws JsonMappingException {
         log.info("Updating person: {}", personDTO);
         PersonDTO savedEntity = platformService.updatePerson(id, personDTO);

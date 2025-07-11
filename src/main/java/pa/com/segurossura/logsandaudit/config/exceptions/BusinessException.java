@@ -21,4 +21,5 @@ public class BusinessException extends Exception {
     private String path;
     private String requestId;
     private String documentationUrl;
+    private Object dtoObject;
 }

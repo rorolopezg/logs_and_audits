@@ -8,7 +8,8 @@ import org.hibernate.event.spi.PostInsertEventListener;
 import org.hibernate.persister.entity.EntityPersister;
 import org.slf4j.MDC;
 import org.springframework.stereotype.Component;
-import pa.com.segurossura.logsandaudit.utils.security.SecurityUtils;
+import pa.com.segurossura.logsandaudit.model.entities.audit.AuditLog;
+import pa.com.segurossura.logsandaudit.security.utils.SecurityUtils;
 
 import java.io.Serializable;
 import java.util.HashMap;
@@ -16,11 +17,12 @@ import java.util.Map;
 
 import static pa.com.segurossura.logsandaudit.config.entitylisteners.HibernateListenerConfig.LOG_TYPE_AUDIT;
 import static pa.com.segurossura.logsandaudit.config.entitylisteners.HibernateListenerConfig.LOG_TYPE_KEY;
+import static pa.com.segurossura.logsandaudit.config.interceptors.TransactionContextInterceptor.*;
 
 @Component
 @Slf4j
 public class EntityInsertEventListener implements PostInsertEventListener {
-    private final static String INSERTED = "inserted";
+    private final static String INSERT = "INSERT";
 
     private final ObjectMapper objectMapper;
 
@@ -30,8 +32,14 @@ public class EntityInsertEventListener implements PostInsertEventListener {
 
     @Override
     public void onPostInsert(PostInsertEvent event) {
+        // *** SOLUCIÓN A LA RECURSIÓN ***
+        // Si la entidad que se está insertando es un AuditLog, no hacer nada.
+        if (event.getEntity() instanceof AuditLog) {
+            return;
+        }
         EntityPersister persister = event.getPersister();
         String user = SecurityUtils.getCurrentUserLogin();
+        String userId = SecurityUtils.getCurrentUserObjectId();
         String entityName = event.getEntity().getClass().getSimpleName();//persister.getEntityName();
         Serializable id = (Serializable) event.getId();
 
@@ -40,8 +48,10 @@ public class EntityInsertEventListener implements PostInsertEventListener {
 
         try {
             MDC.put(LOG_TYPE_KEY, LOG_TYPE_AUDIT);
+            MDC.put(TRANSACTION_ACTION_KEY, INSERT);
             if (insertedState == null) {
-                log.warn("AUDIT - User '{}' Insert (Inserted State not available): Type=[{}], ID=[{}]",
+                log.warn("AUDIT - userId '{}' userName '{}' Insert (Inserted State not available): Type=[{}], ID=[{}]",
+                        userId,
                         user,
                         entityName,
                         id);
@@ -51,13 +61,15 @@ public class EntityInsertEventListener implements PostInsertEventListener {
             // Convertir estados completos a JSON
             String jsonInsertedState = convertStateMapToJson(buildStateMap(propertyNames, insertedState), entityName, id, "InsertedState");
 
-            log.info("AUDIT - User '{}' Inserted: Type=[{}], ID=[{}], InsertedState={}",
+            log.info("AUDIT - userId '{}' userName '{}' has inserted: Type=[{}], ID=[{}], InsertedState={}",
+                    userId,
                     user,
                     entityName,
                     id,
                     jsonInsertedState);
         } finally {
             MDC.remove(LOG_TYPE_KEY);
+            MDC.remove(TRANSACTION_ACTION_KEY);
         }
     }
 

@@ -71,10 +71,31 @@
         </rollingPolicy>
     </appender>
 
+    <!-- Appender de Base de Datos para Auditoría -->
+    <appender name="DB_AUDIT" class="pa.com.segurossura.logsandaudit.config.logs.DBAuditAppender"> <!-- ¡AJUSTA EL PAQUETE! -->
+        <connectionSource class="ch.qos.logback.core.db.DataSourceConnectionSource">
+            <!--
+            <dataSource class="oracle.jdbc.pool.OracleDataSource"> <driverType>thin</driverType>
+                <user>${DB_USER:-RLOPEZ}</user>
+                <password>${DB_PASSWORD:-Cduc1978rlopez.}</password>
+                <URL>${DB_URL:-jdbc:oracle:thin:@localhost:1521/freepdb1}</URL>
+            </dataSource>
+            -->
+        </connectionSource>
+    </appender>
+
+    <appender name="ASYNC_DB_AUDIT" class="ch.qos.logback.classic.AsyncAppender">
+        <appender-ref ref="DB_AUDIT" />
+        <queueSize>256</queueSize> <!-- Tamaño de la cola de logs en memoria -->
+        <discardingThreshold>0</discardingThreshold> <!-- No descartar logs -->
+        <includeCallerData>true</includeCallerData>
+    </appender>
+
     <!-- Routing appender -->
     <appender name="ROUTING" class="pa.com.segurossura.logsandaudit.config.logs.AuditRoutingAppender">
         <appender-ref ref="AUDIT_LOG_FILE"/>
         <appender-ref ref="APP_LOG_FILE"/>
+        <appender-ref ref="ASYNC_DB_AUDIT" /> <!-- Usa la versión asíncrona -->
     </appender>
 
     <!-- Optional: trace logs from your package -->

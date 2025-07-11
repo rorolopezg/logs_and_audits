@@ -25,7 +25,7 @@ public class Person {
     @GeneratedValue
     @JdbcTypeCode(Types.VARCHAR)
     private UUID id;
-    @Column(name = "name", nullable = false, unique = true)
+    @Column(name = "name", nullable = false, unique = false)
     private String name;
     @Column(name = "address", nullable = true)
     private String address;

@@ -8,7 +8,8 @@ import org.hibernate.event.spi.PostDeleteEventListener;
 import org.hibernate.persister.entity.EntityPersister;
 import org.slf4j.MDC;
 import org.springframework.stereotype.Component;
-import pa.com.segurossura.logsandaudit.utils.security.SecurityUtils;
+import pa.com.segurossura.logsandaudit.model.entities.audit.AuditLog;
+import pa.com.segurossura.logsandaudit.security.utils.SecurityUtils;
 
 import java.io.Serializable;
 import java.util.HashMap;
@@ -16,11 +17,12 @@ import java.util.Map;
 
 import static pa.com.segurossura.logsandaudit.config.entitylisteners.HibernateListenerConfig.LOG_TYPE_AUDIT;
 import static pa.com.segurossura.logsandaudit.config.entitylisteners.HibernateListenerConfig.LOG_TYPE_KEY;
+import static pa.com.segurossura.logsandaudit.config.interceptors.TransactionContextInterceptor.TRANSACTION_ACTION_KEY;
 
 @Component
 @Slf4j
 public class EntityDeleteEventListener implements PostDeleteEventListener {
-    private final static String DELETED = "deleted";
+    private final static String DELETE = "DELETE";
 
     private final ObjectMapper objectMapper;
 
@@ -30,8 +32,14 @@ public class EntityDeleteEventListener implements PostDeleteEventListener {
 
     @Override
     public void onPostDelete(PostDeleteEvent event) {
+        // *** SOLUCIÓN A LA RECURSIÓN ***
+        // Si la entidad que se está eliminando es un AuditLog, no hacer nada.
+        if (event.getEntity() instanceof AuditLog) {
+            return;
+        }
         EntityPersister persister = event.getPersister();
         String user = SecurityUtils.getCurrentUserLogin();
+        String userId = SecurityUtils.getCurrentUserObjectId();
         String entityName = event.getEntity().getClass().getSimpleName();//persister.getEntityName();
         Serializable id = (Serializable) event.getId();
 
@@ -40,8 +48,10 @@ public class EntityDeleteEventListener implements PostDeleteEventListener {
 
         try {
             MDC.put(LOG_TYPE_KEY, LOG_TYPE_AUDIT);
+            MDC.put(TRANSACTION_ACTION_KEY, DELETE);
             if (deletedState == null) {
-                log.warn("AUDIT - User '{}' Delete (Deleted State not available): Type=[{}], ID=[{}]",
+                log.warn("AUDIT - userId '{}' userName '{}' Delete (Deleted State not available): Type=[{}], ID=[{}]",
+                        userId,
                         user,
                         entityName,
                         id);
@@ -51,13 +61,15 @@ public class EntityDeleteEventListener implements PostDeleteEventListener {
             // Convertir estados completos a JSON
             String jsonDeletedState = convertStateMapToJson(buildStateMap(propertyNames, deletedState), entityName, id, "DeletedState");
 
-            log.info("AUDIT - User '{}' Updated: Type=[{}], ID=[{}], DeletedState={}",
+            log.info("AUDIT - userId '{}' userName '{}' has deleted: Type=[{}], ID=[{}], DeletedState={}",
+                    userId,
                     user,
                     entityName,
                     id,
                     jsonDeletedState);
         } finally {
             MDC.remove(LOG_TYPE_KEY);
+            MDC.remove(TRANSACTION_ACTION_KEY);
         }
     }
 
