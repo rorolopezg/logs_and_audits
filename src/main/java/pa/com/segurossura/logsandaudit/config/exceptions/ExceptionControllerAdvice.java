@@ -28,6 +28,7 @@ public class ExceptionControllerAdvice {
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<BusinessException> exceptionHandler(Exception ex) {
+        MDC.put(TRANSACTION_STATUS_KEY, "FAILED");
         log.error("Exception occurred:", ex);
         String suggestion = "";
         BusinessException error = null;
@@ -66,12 +67,13 @@ public class ExceptionControllerAdvice {
 
         try {
             MDC.put(LOG_TYPE_KEY, LOG_TYPE_AUDIT);
-            log.info("AUDIT - Operation failed: ID={}, Action={},URI={}, Cause={}, DTO Object={}",
+            log.error("AUDIT - Transaction failed: ID={}, Action={},URI={}, Cause={}, DTO Object={}",
                     MDC.get(TRANSACTION_ID_KEY),
                     MDC.get(TRANSACTION_ACTION_KEY),
                     MDC.get(TRANSACTION_URI_KEY),
                     error.getLocalizedMessage(),
-                    error.getDtoObject() != null ? error.getDtoObject().toString() : "null"
+                    error.getDtoObject() != null ? error.getDtoObject().toString() : "null",
+                    ex
                     );
         } finally {
             MDC.remove(LOG_TYPE_KEY);

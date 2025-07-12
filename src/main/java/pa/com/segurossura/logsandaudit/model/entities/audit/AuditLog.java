@@ -77,6 +77,15 @@ public class AuditLog {
     @Column(name = "message", nullable = false)
     private String message;
 
+    @Column(name = "request_uri", length = 2048)
+    private String requestUri;
+
+    @Column(name = "changed_property_names", length = 4000)
+    private String changedPropertyNames;
+
+    @Column(name = "changed_property_values", length = 4000)
+    private String changedPropertyValues;
+
     @Column(name = "status", length = 32)
     private String status;
 

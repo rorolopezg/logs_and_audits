@@ -13,18 +13,22 @@ import pa.com.segurossura.logsandaudit.model.entities.audit.AuditLog;
 import pa.com.segurossura.logsandaudit.security.utils.SecurityUtils;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import static pa.com.segurossura.logsandaudit.config.entitylisteners.HibernateListenerConfig.LOG_TYPE_AUDIT;
 import static pa.com.segurossura.logsandaudit.config.entitylisteners.HibernateListenerConfig.LOG_TYPE_KEY;
 import static pa.com.segurossura.logsandaudit.config.interceptors.TransactionContextInterceptor.TRANSACTION_ACTION_KEY;
+import static pa.com.segurossura.logsandaudit.config.interceptors.TransactionContextInterceptor.TRANSACTION_STATUS_KEY;
 
 
 @Component
 @Slf4j
 public class EntityUpdateEventListener implements PostUpdateEventListener {
     private final static String UPDATE = "UPDATE";
+    private final static int MAX_JSON_LENGTH = 3999; // Limite de longitud para el JSON
     private final ObjectMapper objectMapper;
 
     public EntityUpdateEventListener(ObjectMapper objectMapper) {
@@ -48,13 +52,11 @@ public class EntityUpdateEventListener implements PostUpdateEventListener {
 
         String user = SecurityUtils.getCurrentUserLogin();
         String userId = SecurityUtils.getCurrentUserObjectId();
-        String transactionId = MDC.get(TransactionContextInterceptor.TRANSACTION_ID_KEY);
-        String transactionAction = MDC.get(TransactionContextInterceptor.TRANSACTION_ACTION_KEY);
-
 
         try {
             MDC.put(LOG_TYPE_KEY, LOG_TYPE_AUDIT);
             MDC.put(TRANSACTION_ACTION_KEY, UPDATE);
+            MDC.put(TRANSACTION_STATUS_KEY, "IN PROGRESS");
             // Si oldState es null, no podemos determinar los cambios específicos de esta manera.
             // Esto ya se manejaba en la versión anterior, lo mantenemos.
             if (oldState == null) {
@@ -74,6 +76,7 @@ public class EntityUpdateEventListener implements PostUpdateEventListener {
 
             // Identificar y convertir solo las propiedades cambiadas a JSON
             int[] dirtyPropertiesIndices = event.getDirtyProperties();
+            String jsonChangedPropertyNames = getChangedPropertyNamesAsJson(propertyNames, dirtyPropertiesIndices, entityName, id);
             String jsonChangedProperties = convertChangedPropertiesToJson(
                     propertyNames,
                     oldState,
@@ -82,6 +85,8 @@ public class EntityUpdateEventListener implements PostUpdateEventListener {
                     entityName,
                     id
             );
+            MDC.put(TransactionContextInterceptor.CHANGED_PROPERTY_NAMES_KEY, entityName + ": " + jsonChangedPropertyNames);
+            MDC.put(TransactionContextInterceptor.CHANGED_PROPERTY_VALUES_KEY, jsonChangedProperties);
 
             log.info("AUDIT - userId '{}' userName '{}' has updated: Type=[{}], ID=[{}], OldState={}, NewState={}, ChangedProperties={}",
                     userId,
@@ -94,6 +99,40 @@ public class EntityUpdateEventListener implements PostUpdateEventListener {
         } finally {
             MDC.remove(LOG_TYPE_KEY);
             MDC.remove(TRANSACTION_ACTION_KEY);
+            MDC.remove(TransactionContextInterceptor.CHANGED_PROPERTY_NAMES_KEY);
+            MDC.remove(TransactionContextInterceptor.CHANGED_PROPERTY_VALUES_KEY);
+        }
+    }
+
+    /**
+     * Recopila los nombres de las propiedades modificadas y los devuelve como una cadena de texto
+     * en formato de array JSON.
+     *
+     * @param allPropertyNames Array con todos los nombres de las propiedades de la entidad.
+     * @param dirtyPropertiesIndices Array de índices que Hibernate proporciona.
+     * @param entityName Nombre de la entidad (para logging de errores).
+     * @param id ID de la entidad (para logging de errores).
+     * @return Un String con formato JSON como ["name", "address"] o un array vacío "[]".
+     */
+    private String getChangedPropertyNamesAsJson(String[] allPropertyNames, int[] dirtyPropertiesIndices, String entityName, Serializable id) {
+        if (dirtyPropertiesIndices == null || dirtyPropertiesIndices.length == 0) {
+            return "[]"; // Devuelve un array JSON vacío
+        }
+
+        List<String> changedNames = new ArrayList<>();
+        for (int index : dirtyPropertiesIndices) {
+            if (index >= 0 && index < allPropertyNames.length) {
+                changedNames.add(allPropertyNames[index]);
+            }
+        }
+
+        try {
+            // Usa el ObjectMapper para serializar la lista de strings a un array JSON
+            String result = objectMapper.writeValueAsString(changedNames);
+            return result.length() > MAX_JSON_LENGTH ? result.substring(0, MAX_JSON_LENGTH) : result;
+        } catch (JsonProcessingException e) {
+            log.error("AUDIT - Error converting changed property names to JSON for Entity: {}, ID: {}", entityName, id, e);
+            return "[\"Error serializing property names\"]";
         }
     }
 
@@ -121,9 +160,9 @@ public class EntityUpdateEventListener implements PostUpdateEventListener {
         if (stateMap.isEmpty() && stateType.equals("OldState")) return "null"; // Para oldState si no había nada
         if (stateMap.isEmpty()) return "{}";
 
-
         try {
-            return objectMapper.writeValueAsString(stateMap);
+            String result = objectMapper.writeValueAsString(stateMap);
+            return result.substring(0, Math.min(result.length(), MAX_JSON_LENGTH));
         } catch (JsonProcessingException e) {
             log.error("AUDIT - Error converting {} to JSON for Entity: {}, ID: {}", stateType, entityName, id, e);
             return String.format("{\"error\":\"Could not serialize %s to JSON\"}", stateType);
@@ -158,7 +197,7 @@ public class EntityUpdateEventListener implements PostUpdateEventListener {
                     continue; // Si ambos son null, no hay cambio
                 }
                 Map<String, Object> diff = new HashMap<>();
-                diff.put("old", oldValue);
+                //diff.put("old", oldValue);
                 diff.put("new", newValue);
                 changedProperties.put(propertyName, diff);
             } else {
@@ -171,7 +210,8 @@ public class EntityUpdateEventListener implements PostUpdateEventListener {
         }
 
         try {
-            return objectMapper.writeValueAsString(changedProperties);
+            String result = objectMapper.writeValueAsString(changedProperties);
+                return result.substring(0, Math.min(result.length(), MAX_JSON_LENGTH));
         } catch (JsonProcessingException e) {
             log.error("AUDIT - Error converting changed properties to JSON for Entity: {}, ID: {}", entityName, id, e);
             return "{\"error\":\"Could not serialize changed properties to JSON\"}";

@@ -64,9 +64,10 @@ public final class SecurityUtils {
     }
 
     public static String getCurrentUserLogin() {
-        return getCurrentJwt()
-                .map(jwt -> jwt.getClaimAsString("upn"))
+        String username = getCurrentJwt()
+                .map(jwt -> jwt.getClaimAsString("upn") != null ? jwt.getClaimAsString("upn") : jwt.getClaimAsStringList("emails").getFirst() )
                 .orElse("UNKNOWN");
+        return username;
     }
 
     public static String getCurrentUserObjectId() {

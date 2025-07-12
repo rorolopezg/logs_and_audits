@@ -45,6 +45,8 @@ public class TransactionContextInterceptor implements HandlerInterceptor {
     public static final String ROLESIDS_KEY = "rolesIds";
     public static final String B2C_TENANT_ID_KEY = "b2cTenantId";
     public static final String IDP_TENANT_ID_KEY = "idpTenantId";
+    public static final String CHANGED_PROPERTY_NAMES_KEY = "changedPropertyNames";
+    public static final String CHANGED_PROPERTY_VALUES_KEY = "changedPropertyValues";
 
     @Override
     public boolean preHandle(@NonNull HttpServletRequest request, @NonNull HttpServletResponse response, @NonNull Object handler) {
@@ -56,6 +58,7 @@ public class TransactionContextInterceptor implements HandlerInterceptor {
             String rolesNames = SecurityUtils.getRolesFromAuthentication().stream().collect(Collectors.joining(","));
 
             MDC.put(LOG_TYPE_KEY, LOG_TYPE_AUDIT);
+            MDC.put(TRANSACTION_STATUS_KEY, "STARTED");
             MDC.put(B2C_TENANT_ID_KEY, SecurityUtils.getB2cTenantId());
             MDC.put(IDP_TENANT_ID_KEY, SecurityUtils.getIdpTenantId());
             MDC.put(TRANSACTION_ID_KEY, transactionId);
@@ -79,7 +82,7 @@ public class TransactionContextInterceptor implements HandlerInterceptor {
             MDC.put(REMOTE_IP_KEY, getRemoteIp(request));
             MDC.put(TRANSACTION_TIMESTAMP_KEY, Instant.now().toString());
 
-            log.info("AUDIT - Starting transaction: ID={}, Transaction Name={}, URI={}",
+            log.info("AUDIT - Transaction started: ID={}, Transaction Name={}, URI={}",
                     transactionId,
                     MDC.get(TRANSACTION_NAME_KEY),
                     MDC.get(TRANSACTION_URI_KEY));
@@ -94,21 +97,25 @@ public class TransactionContextInterceptor implements HandlerInterceptor {
     public void afterCompletion(@NonNull HttpServletRequest request, @NonNull HttpServletResponse response, @NonNull Object handler, Exception ex) {
         try {
             MDC.put(LOG_TYPE_KEY, LOG_TYPE_AUDIT);
-            log.info("AUDIT - Finishing transaction: ID={}, Transaction Name={}, URI={}",
+            if (MDC.get(TRANSACTION_STATUS_KEY).equals("FAILED"))
+                MDC.put(TRANSACTION_STATUS_KEY, "COMPLETED (FAILED)");
+            else
+                MDC.put(TRANSACTION_STATUS_KEY, "COMPLETED (SUCCESS)");
+
+            log.info("AUDIT - Transaction completed: ID={}, Transaction Name={}, URI={}",
                     MDC.get(TRANSACTION_ID_KEY),
                     MDC.get(TRANSACTION_NAME_KEY),
                     MDC.get(TRANSACTION_URI_KEY));
+        } finally {
             // Limpia el MDC después de que la petición se ha completado
             // Es crucial para evitar que los datos de esta petición se filtren a la siguiente en el mismo hilo.
-            MDC.remove(B2C_TENANT_ID_KEY);
-            MDC.remove(IDP_TENANT_ID_KEY);
+            MDC.remove(LOG_TYPE_KEY);
             MDC.remove(TRANSACTION_ID_KEY);
-            MDC.remove(USERNAME_KEY);
-            MDC.remove(USER_ID_KEY);
-            MDC.remove(ROLESNAMES_KEY);
             MDC.remove(TRANSACTION_NAME_KEY);
             MDC.remove(TRANSACTION_ACTION_KEY);
             MDC.remove(TRANSACTION_URI_KEY);
+            MDC.remove(TRANSACTION_STATUS_KEY);
+            MDC.remove(TRANSACTION_TIMESTAMP_KEY);
             MDC.remove(X_TRANSACTION_ID_KEY);
             MDC.remove(X_ORGANIZATION_ID_KEY);
             MDC.remove(X_ORGANIZATION_TYPE_KEY);
@@ -116,8 +123,15 @@ public class TransactionContextInterceptor implements HandlerInterceptor {
             MDC.remove(X_USER_KEY);
             MDC.remove(X_CLIENT_APPLICATION_FLOW_KEY);
             MDC.remove(REMOTE_IP_KEY);
-        } finally {
-            MDC.remove(LOG_TYPE_KEY);
+            MDC.remove(USER_LAST_LOGIN_KEY);
+            MDC.remove(USERNAME_KEY);
+            MDC.remove(USER_ID_KEY);
+            MDC.remove(ROLESNAMES_KEY);
+            MDC.remove(ROLESIDS_KEY);
+            MDC.remove(B2C_TENANT_ID_KEY);
+            MDC.remove(IDP_TENANT_ID_KEY);
+            MDC.remove(CHANGED_PROPERTY_NAMES_KEY);
+            MDC.remove(CHANGED_PROPERTY_VALUES_KEY);
         }
     }
 

@@ -8,6 +8,7 @@ import org.hibernate.event.spi.PostDeleteEventListener;
 import org.hibernate.persister.entity.EntityPersister;
 import org.slf4j.MDC;
 import org.springframework.stereotype.Component;
+import pa.com.segurossura.logsandaudit.config.interceptors.TransactionContextInterceptor;
 import pa.com.segurossura.logsandaudit.model.entities.audit.AuditLog;
 import pa.com.segurossura.logsandaudit.security.utils.SecurityUtils;
 
@@ -18,6 +19,7 @@ import java.util.Map;
 import static pa.com.segurossura.logsandaudit.config.entitylisteners.HibernateListenerConfig.LOG_TYPE_AUDIT;
 import static pa.com.segurossura.logsandaudit.config.entitylisteners.HibernateListenerConfig.LOG_TYPE_KEY;
 import static pa.com.segurossura.logsandaudit.config.interceptors.TransactionContextInterceptor.TRANSACTION_ACTION_KEY;
+import static pa.com.segurossura.logsandaudit.config.interceptors.TransactionContextInterceptor.TRANSACTION_STATUS_KEY;
 
 @Component
 @Slf4j
@@ -49,6 +51,8 @@ public class EntityDeleteEventListener implements PostDeleteEventListener {
         try {
             MDC.put(LOG_TYPE_KEY, LOG_TYPE_AUDIT);
             MDC.put(TRANSACTION_ACTION_KEY, DELETE);
+            MDC.put(TRANSACTION_STATUS_KEY, "IN PROGRESS");
+
             if (deletedState == null) {
                 log.warn("AUDIT - userId '{}' userName '{}' Delete (Deleted State not available): Type=[{}], ID=[{}]",
                         userId,
@@ -70,6 +74,8 @@ public class EntityDeleteEventListener implements PostDeleteEventListener {
         } finally {
             MDC.remove(LOG_TYPE_KEY);
             MDC.remove(TRANSACTION_ACTION_KEY);
+            MDC.remove(TransactionContextInterceptor.CHANGED_PROPERTY_NAMES_KEY);
+            MDC.remove(TransactionContextInterceptor.CHANGED_PROPERTY_VALUES_KEY);
         }
     }
 

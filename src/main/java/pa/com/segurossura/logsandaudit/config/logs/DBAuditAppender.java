@@ -73,6 +73,9 @@ public class DBAuditAppender extends UnsynchronizedAppenderBase<ILoggingEvent> {
                     .stackTrace(stackTrace)
                     .b2cTenantId(mdc.get(TransactionContextInterceptor.B2C_TENANT_ID_KEY))
                     .idpTenantId(mdc.get(TransactionContextInterceptor.IDP_TENANT_ID_KEY))
+                    .requestUri(mdc.get(TransactionContextInterceptor.TRANSACTION_URI_KEY))
+                    .changedPropertyNames(mdc.get(TransactionContextInterceptor.CHANGED_PROPERTY_NAMES_KEY))
+                    .changedPropertyValues(mdc.get(TransactionContextInterceptor.CHANGED_PROPERTY_VALUES_KEY))
                     .build();
 
             auditLogService.saveLog(auditLog);
