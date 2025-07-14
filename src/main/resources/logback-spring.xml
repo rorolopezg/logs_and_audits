@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration>
     <property name="LOG_ROOT" value="${ENV_LOG_ROOT:-/Users/Shared/logs/test-jpa}"/>
-    <property name="LOG_FILE_NAME" value="api.log"/>
+    <property name="LOG_FILE_NAME" value="app.log"/>
     <property name="AUDIT_LOG_FILE_NAME" value="audit.log"/>
 
     <!-- Console appender -->
